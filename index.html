@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.9.6.5：ASSIST_COMA初期化順エラーを修正。停止テーブル仕様は維持。</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.9.6.6：ASSIST_COMA初期化順エラーを修正。停止テーブル仕様は維持。</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -307,7 +307,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 .mf-peek-bottom{bottom:-17px;}
 
 
-/* ===== Ver.0.9.9.6.5：7図柄を横1.30倍に拡大。BARは従来の横1.32倍を維持。
+/* ===== Ver.0.9.9.6.6：7図柄のみ横2.50倍へ拡大。BARは従来倍率を維持。ゲームロジック変更なし。
 /* 3リールの図柄サイズ・配置基準を完全統一 */
 .reels{
   align-items:stretch !important;
@@ -384,7 +384,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 /* 高さは変えず、7とBARだけ横方向へ拡大。
    回転中・停止中とも同じ表示倍率になる。 */
 .reel img[src*="images_symbols_seven.png"]{
-  transform:scaleX(1.30) !important;
+  transform:scaleX(2.50) !important;
   transform-origin:center center !important;
   max-width:94% !important;
 }
@@ -397,7 +397,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 /* reel-slot / symbol wrapper側で描画される場合も対応 */
 .reel-slot img[src*="images_symbols_seven.png"],
 .symbol img[src*="images_symbols_seven.png"]{
-  transform:scaleX(1.30) !important;
+  transform:scaleX(2.50) !important;
   transform-origin:center center !important;
 }
 .reel-slot img[src*="images_symbols_bar.png"],
@@ -408,7 +408,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.6.5.2</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.6.6.2</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
