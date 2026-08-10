@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.8.2</title>
+<title>万枚ファンタジア A-TYPE Ver.0.8.4</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
 .machine{width:min(850px,100%)}.logo{text-align:center}.logo img{width:min(520px,90vw);max-height:160px;object-fit:contain}.ver{text-align:center;color:#d6b46d;font-size:12px;font-weight:900;letter-spacing:.14em;margin-bottom:8px}
@@ -154,8 +154,30 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
  .frog-corner img{width:76px!important}
 }
 
+
+.volume-control{
+ display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #745a2a;
+ border-radius:10px;background:#090704cc;box-shadow:inset 0 0 10px #000a
+}
+.volume-btn{
+ width:30px;height:30px;padding:0!important;border-radius:50%!important;border:1px solid #8e7548!important;
+ background:linear-gradient(#3b3022,#171109)!important;color:#ffe6a1!important;font-size:18px!important;font-weight:900!important
+}
+.volume-icon{font-size:16px;filter:drop-shadow(0 0 4px #fff3)}
+.volume-slider{
+ width:125px;accent-color:#d6a63c;cursor:pointer
+}
+.volume-value{
+ min-width:38px;color:#ffe08a;font-size:11px;font-weight:900;text-align:right
+}
+@media(max-width:700px){
+ .volume-slider{width:82px}
+ .volume-control{gap:4px;padding:5px 6px}
+ .volume-value{min-width:34px}
+}
+
 </style></head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.8.2</div>
+<div class="cabinet-top"><img src="cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.8.4</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -188,9 +210,18 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
   <div id="status" class="status">MAX BETしてレバーON</div>
   <div class="subcontrols">
     <button id="paytableBtn" class="paytable-btn">成立役一覧 / 配当表</button>
-    <div class="soundRow"><button id="soundBtn" class="soundBtn">SOUND ON</button></div>
+    <div class="soundRow">
+      <button id="soundBtn" class="soundBtn">SOUND ON</button>
+      <div class="volume-control">
+        <button id="volumeDown" class="volume-btn" type="button">−</button>
+        <span class="volume-icon">🔊</span>
+        <input id="volumeSlider" class="volume-slider" type="range" min="0" max="100" value="65" step="5" aria-label="音量">
+        <span id="volumeValue" class="volume-value">65%</span>
+        <button id="volumeUp" class="volume-btn" type="button">＋</button>
+      </div>
+    </div>
   </div>
-  <div class="note">Ver.0.8.2：上下の専用筐体アートを統合。A-TYPE本体・AUTO・音声ロジックは維持。</div>
+  <div class="note">Ver.0.8.4：リール速度を約1.4倍に高速化。BET・LEVER・STOP・回転中モーターSEを強化。</div>
 </div>
 </div></section></main>
 
@@ -222,7 +253,8 @@ window.addEventListener("error",e=>{
 });
 
 
-let soundOn=true,audioCtx=null,currentBgm=null,bigBgmIndex=0;
+let soundOn=true,audioCtx=null,currentBgm=null,bigBgmIndex=0,masterVolume=.65;
+let reelMotorNodes=null;
 
 function safeAudioContext(){
   try{
@@ -243,20 +275,82 @@ function tone(freq,d=.06,vol=.035,type="square",delay=0){
     if(!c)return;
     const o=c.createOscillator(),g=c.createGain(),s=c.currentTime+delay;
     o.type=type;o.frequency.value=f;
-    g.gain.setValueAtTime(Math.max(.0001,vol),s);
+    g.gain.setValueAtTime(Math.max(.0001,vol*masterVolume),s);
     g.gain.exponentialRampToValueAtTime(.0001,s+d);
     o.connect(g);g.connect(c.destination);o.start(s);o.stop(s+d);
   }catch(e){console.warn("SE skipped:",e);}
 }
+
+function noiseBurst(d=.06,vol=.025,filterFreq=1200){
+ if(!soundOn)return;
+ try{
+   const c=safeAudioContext(); if(!c)return;
+   const len=Math.max(1,Math.floor(c.sampleRate*d));
+   const buf=c.createBuffer(1,len,c.sampleRate);
+   const data=buf.getChannelData(0);
+   for(let i=0;i<len;i++)data[i]=(Math.random()*2-1)*(1-i/len);
+   const src=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+   src.buffer=buf;f.type="bandpass";f.frequency.value=filterFreq;f.Q.value=.8;
+   g.gain.value=vol*masterVolume;
+   src.connect(f);f.connect(g);g.connect(c.destination);src.start();
+ }catch(e){console.warn("noise SE skipped:",e);}
+}
+function startReelMotor(){
+ if(!soundOn || reelMotorNodes)return;
+ try{
+   const c=safeAudioContext(); if(!c)return;
+   const osc=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter();
+   osc.type="sawtooth";osc.frequency.value=92;
+   f.type="lowpass";f.frequency.value=520;
+   g.gain.value=.016*masterVolume;
+   osc.connect(f);f.connect(g);g.connect(c.destination);osc.start();
+   reelMotorNodes={osc,g,f};
+ }catch(e){console.warn("motor SE skipped:",e);}
+}
+function stopReelMotor(){
+ try{
+   if(reelMotorNodes){
+     const c=safeAudioContext();
+     reelMotorNodes.g.gain.setTargetAtTime(.0001,c.currentTime,.025);
+     setTimeout(()=>{try{reelMotorNodes.osc.stop()}catch(e){} reelMotorNodes=null;},90);
+   }
+ }catch(e){reelMotorNodes=null;}
+}
 const SE={
- bet(){try{tone(220,.05,.035,"square");tone(330,.05,.02,"square",.04)}catch(e){}},
- lever(){try{tone(115,.08,.05,"sawtooth");tone(170,.07,.035,"square",.05)}catch(e){}},
- stop(n){try{tone(480+n*70,.04,.04,"square")}catch(e){}},
- bell(){try{tone(660,.05,.03,"triangle");tone(880,.06,.025,"triangle",.05)}catch(e){}},
- replay(){try{tone(420,.05,.025,"triangle");tone(520,.06,.02,"triangle",.05)}catch(e){}},
- rare(){try{tone(260,.07,.05,"sawtooth");tone(780,.09,.035,"square",.07)}catch(e){}},
- chance(){try{[320,520,760].forEach((f,i)=>tone(f,.08,.04,"square",i*.05))}catch(e){}},
- bonus(){try{[392,523,659,784].forEach((f,i)=>tone(f,.13,.055,"triangle",i*.08))}catch(e){}}
+ bet(){
+   tone(190,.045,.075,"square");
+   tone(285,.05,.055,"square",.035);
+   noiseBurst(.045,.035,1700);
+ },
+ lever(){
+   tone(88,.075,.08,"sawtooth");
+   tone(132,.08,.06,"square",.045);
+   noiseBurst(.07,.04,650);
+ },
+ stop(n){
+   tone(510+n*55,.035,.075,"square");
+   tone(255+n*25,.045,.045,"triangle",.018);
+   noiseBurst(.035,.045,2100);
+ },
+ bell(){
+   tone(720,.055,.05,"triangle");
+   tone(960,.08,.04,"triangle",.045);
+ },
+ replay(){
+   tone(390,.045,.04,"triangle");
+   tone(520,.07,.035,"triangle",.045);
+ },
+ rare(){
+   tone(250,.065,.07,"sawtooth");
+   tone(700,.08,.055,"square",.06);
+   noiseBurst(.06,.03,1400);
+ },
+ chance(){
+   [320,520,760,1040].forEach((f,i)=>tone(f,.075,.055,"square",i*.045));
+ },
+ bonus(){
+   [392,523,659,784].forEach((f,i)=>tone(f,.13,.07,"triangle",i*.08));
+ }
 };
 function stopBgm(){
   try{
@@ -270,7 +364,7 @@ function playBgm(id){
     stopBgm();
     const a=E(id);
     if(!a)return;
-    a.volume=.65;a.loop=true;a.currentTime=0;
+    a.volume=masterVolume;a.loop=true;a.currentTime=0;
     const promise=a.play();
     if(promise&&typeof promise.catch==="function"){
       promise.catch(e=>console.warn("BGM play blocked:",e));
@@ -398,7 +492,7 @@ E("leverBtn").onclick=()=>{
    E("status").textContent="回転中… STOP!";
  }
  if(!bonusStock&&!bonusMode)E("manLamp").classList.remove("on");
- start("left",23);start("center",25);start("right",27);
+ startReelMotor();start("left",32);start("center",35);start("right",38);
  ["stopL","stopC","stopR"].forEach(id=>{E(id).disabled=false;E(id).classList.add("ready")});
  sync();
 };
@@ -416,7 +510,7 @@ function stop(k,b){
  }
  setCenter(k,forced);
  b.disabled=true;b.classList.remove("ready");order++;
- if(order===3)finish();
+ if(order===3){stopReelMotor();finish();}
 }
 function finish(){
  spinning=false;bet=0;let msg="ハズレ";
@@ -489,7 +583,7 @@ E("soundBtn").onclick=()=>{
  soundOn=!soundOn;
  E("soundBtn").textContent=soundOn?"SOUND ON":"SOUND OFF";
  E("soundBtn").classList.toggle("off",!soundOn);
- if(!soundOn)stopBgm();
+ if(!soundOn){stopBgm();stopReelMotor();}
 };
 
 
@@ -515,6 +609,41 @@ E("autoBtn").onclick=()=>{
  E("autoBtn").classList.toggle("on",autoMode);
  if(autoMode)autoStep(); else clearTimeout(autoTimer);
 };
+
+
+function applyVolume(v){
+ masterVolume=Math.max(0,Math.min(1,v));
+ const pct=Math.round(masterVolume*100);
+ const slider=E("volumeSlider"),label=E("volumeValue");
+ if(slider)slider.value=pct;
+ if(label)label.textContent=pct+"%";
+ ["bgmBig1","bgmBig2","bgmBig3","bgmBar"].forEach(id=>{
+   const a=E(id); if(a)a.volume=masterVolume;
+ });
+ if(reelMotorNodes && reelMotorNodes.g){
+   reelMotorNodes.g.gain.value=.016*masterVolume;
+ }
+ if(masterVolume===0){
+   soundOn=false;
+   E("soundBtn").textContent="SOUND OFF";
+   E("soundBtn").classList.add("off");
+ }else if(!soundOn){
+   soundOn=true;
+   E("soundBtn").textContent="SOUND ON";
+   E("soundBtn").classList.remove("off");
+ }
+}
+E("volumeSlider").addEventListener("input",e=>applyVolume(+e.target.value/100));
+E("volumeDown").onclick=()=>applyVolume(masterVolume-.05);
+E("volumeUp").onclick=()=>applyVolume(masterVolume+.05);
+
+// SOUND ONに戻した時は現在の音量を維持
+const oldSoundToggle=E("soundBtn").onclick;
+E("soundBtn").onclick=()=>{
+ if(oldSoundToggle)oldSoundToggle();
+ if(soundOn && masterVolume===0)applyVolume(.25);
+};
+applyVolume(.65);
 
 sync();
 </script></body></html>
