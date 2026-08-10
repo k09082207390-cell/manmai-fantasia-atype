@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.8.2.2</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.8.3.2</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -242,7 +242,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.8.2.2</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.8.3.2</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -286,7 +286,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
       </div>
     </div>
   </div>
-  <div class="note">Ver.0.9.8.2：missPlan初期化エラーを根本修正。リール描画・操作を復旧。</div><div style="text-align:center;color:#8dff9f;font-size:11px;font-weight:900;margin:5px 0 0">スイカ成立時：中・右もBARを目安に狙えば5コマ以内でスイカをフォロー</div><div style="text-align:center;color:#ffd85a;font-size:11px;font-weight:900;margin:6px 0 0">左リール基本狙い：7・8・9付近（チェリー／スイカ フォロー）</div>
+  <div class="note">Ver.0.9.8.3：AUTO停止時の centerSymbol 未定義エラーを修正。</div><div style="text-align:center;color:#8dff9f;font-size:11px;font-weight:900;margin:5px 0 0">スイカ成立時：中・右もBARを目安に狙えば5コマ以内でスイカをフォロー</div><div style="text-align:center;color:#ffd85a;font-size:11px;font-weight:900;margin:6px 0 0">左リール基本狙い：7・8・9付近（チェリー／スイカ フォロー）</div>
 </div>
 </div></section></main>
 
@@ -595,6 +595,11 @@ function visibleTriplet(k,centerIdx){
    bottom:arr[norm(centerIdx+1,n)]
  };
 }
+function centerSymbol(k){
+ const idx=pressedCenterIndex(k);
+ return R[k][norm(idx,R[k].length)];
+}
+
 function cherryPosition(){
  const idx=pressedCenterIndex("left");
  const trip=visibleTriplet("left",idx);
@@ -733,6 +738,7 @@ function allBonusSymbolsCaptured(){
  return stopHit.left && stopHit.center && stopHit.right;
 }
 function roleCaptured(){
+ try{
  const L=centerSymbol("left"), C=centerSymbol("center"), RR=centerSymbol("right");
 
  if(currentRole==="REPLAY") return L==="replay" && C==="replay" && RR==="replay";
@@ -752,6 +758,10 @@ function roleCaptured(){
 
  if(currentRole==="CHANCE") return false;
  return stopHit.left && stopHit.center && stopHit.right;
+ }catch(e){
+   console.warn("roleCaptured fallback:",e);
+   return stopHit.left && stopHit.center && stopHit.right;
+ }
 }
 
 E("betBtn").onclick=()=>{

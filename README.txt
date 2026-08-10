@@ -78,3 +78,10 @@ Ver.0.9.8.2 REPAIR:
 ・リール描画/レバー/STOP/抽選ロジックを優先して復旧
 ・リール窓の奥行き感だけCSSで安全に維持
 ・上下の実図柄チラ見せは、ゲーム復旧確認後に別方式で再実装予定
+
+
+Ver.0.9.8.3 AUTO FIX:
+・AUTO中に停止後 `centerSymbol is not defined` で止まる問題を修正
+・centerSymbol() を復元
+・roleCaptured() に安全フォールバックを追加
+・抽選確率、リール配列、5コマアシスト、AUTO速度は変更なし
