@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.9.3：通常WAITを約1.5秒へ短縮。ボーナス図柄揃い時は5秒ウェイト。</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.9.4：通常WAITを約1.5秒へ短縮。ボーナス図柄揃い時は5秒ウェイト。</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -269,7 +269,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 #mf-kakutei.show{display:block}
 
 
-/* ===== Ver.0.9.9.3：リール回転速度を約1.4倍に高速化。5コマアシスト・停止制御は変更なし。
+/* ===== Ver.0.9.9.4：左リールBAR下段狙いに弱めの2コマ補助を追加。高速リール・5コマ役アシストは維持。
 /* リール全体を横・縦とも少し大きく */
 .reels{
   width:min(96%, 760px) !important;
@@ -308,7 +308,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.3.2</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.4.2</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -752,6 +752,23 @@ function findAssistIndex(k,symbol,maxSlide=ASSIST_COMA){
  }
  return {idx:press,slide:0,hit:false};
 }
+
+function findLeftBottomBarAssist(){
+ const arr=R.left, n=arr.length;
+ const press=pressedCenterIndex("left");
+
+ // 「少しだけ」アシスト：押した位置から最大2コマだけ見る
+ // 下段にBARが来る center index を探す
+ for(let slide=0; slide<=2; slide++){
+   const center=norm(press-slide,n);
+   const trip=visibleTriplet("left",center);
+   if(trip.bottom==="bar"){
+     return {idx:center,slide,hit:true};
+   }
+ }
+ return {idx:press,slide:0,hit:false};
+}
+
 function targetFor(k,role){
  if(role==="WEAK_CHERRY"){
    if(k!=="left")return null;
@@ -905,6 +922,18 @@ function stop(k,b){
  }else if(k==="left" && currentRole==="STRONG_CHERRY"){
    const assist=findCherryStop("STRONG");
    idx=assist.idx;slide=assist.slide;hit=assist.hit;
+ }else if(k==="left" && currentRole==="MISS" && Math.random()<0.65){
+   // 左BAR下段の基本形アシスト
+   const barAssist=findLeftBottomBarAssist();
+   if(barAssist.hit){
+     idx=barAssist.idx;
+     slide=barAssist.slide;
+     hit=true;
+   }else if(missPlan){
+     idx=missPlan[k];
+     slide=Math.min(ASSIST_COMA,Math.abs(norm(idx-pressedCenterIndex(k),R[k].length)));
+     hit=true;
+   }
  }else if(currentRole==="MISS" && missPlan){
    idx=missPlan[k];
    slide=Math.min(ASSIST_COMA,Math.abs(norm(idx-pressedCenterIndex(k),R[k].length)));
