@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.3</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.8</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -214,9 +214,46 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 }
 
 
+
+/* ===== Ver.0.9.8 REAL REEL WINDOW ===== */
+.reel{
+  position:relative;
+  overflow:hidden;
+}
+.reel-peek{
+  position:absolute;
+  left:0;
+  width:100%;
+  height:15%;
+  z-index:8;
+  overflow:hidden;
+  pointer-events:none;
+  display:flex;
+  justify-content:center;
+  background:linear-gradient(to bottom,rgba(10,10,10,.28),rgba(255,255,255,.03));
+}
+.reel-peek.top{top:0;border-bottom:1px solid rgba(255,255,255,.16)}
+.reel-peek.bottom{bottom:0;border-top:1px solid rgba(255,255,255,.16);background:linear-gradient(to top,rgba(10,10,10,.28),rgba(255,255,255,.03))}
+.reel-peek img{
+  width:76%;
+  height:auto;
+  object-fit:contain;
+  filter:brightness(.72) saturate(.9);
+}
+.reel-peek.top img{transform:translateY(-58%)}
+.reel-peek.bottom img{transform:translateY(58%)}
+.reel::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:9;
+  pointer-events:none;
+  box-shadow:inset 0 18px 20px rgba(0,0,0,.25),inset 0 -18px 20px rgba(0,0,0,.25);
+}
+
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.3</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.8</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -260,7 +297,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
       </div>
     </div>
   </div>
-  <div class="note">Ver.0.9.3 FIX：GitHub直置き対応。左リール10・11を入れ替え。</div>
+  <div class="note">Ver.0.9.8：リール窓を実機風の3コマ＋上下チラ見せ表示へ変更。ゲーム抽選・停止制御はVer.0.9.7を維持。</div><div style="text-align:center;color:#8dff9f;font-size:11px;font-weight:900;margin:5px 0 0">スイカ成立時：中・右もBARを目安に狙えば5コマ以内でスイカをフォロー</div><div style="text-align:center;color:#ffd85a;font-size:11px;font-weight:900;margin:6px 0 0">左リール基本狙い：7・8・9付近（チェリー／スイカ フォロー）</div>
 </div>
 </div></section></main>
 
@@ -290,17 +327,13 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 const S={seven:"images_symbols_seven.png",bar:"images_symbols_bar.png",bell:"images_symbols_bell.png",cherry:"images_symbols_cherry.png",watermelon:"images_symbols_watermelon.png",replay:"images_symbols_replay.png"};
 const R={
  left:[
-   "seven", "replay", "bell", "watermelon", "replay", "cherry", "bell", "replay", "bar", "watermelon", "bell", "replay", "bell", "cherry", "replay", "seven", "bell", "replay", "watermelon", "bell", "replay"
+   "seven", "replay", "bell", "watermelon", "replay", "cherry", "replay", "bell", "bar", "watermelon", "bell", "replay", "bell", "cherry", "replay", "seven", "bell", "replay", "watermelon", "bell", "replay"
  ],
  center:[
-   "replay","seven","watermelon","bell","replay","bar","bell",
-   "replay","watermelon","bell","replay","seven","bell","replay",
-   "watermelon","bar","bell","replay","bell","watermelon","replay"
+   "replay", "seven", "bell", "watermelon", "replay", "bar", "bell", "replay", "watermelon", "bell", "replay", "seven", "bell", "watermelon", "replay", "bar", "bell", "replay", "bell", "watermelon", "replay"
  ],
  right:[
-   "watermelon","replay","seven","bell","replay","watermelon","bell",
-   "bar","replay","bell","watermelon","replay","bell","seven",
-   "replay","watermelon","bell","bar","replay","bell","replay"
+   "replay", "seven", "bell", "replay", "watermelon", "bell", "replay", "bar", "bell", "replay", "watermelon", "replay", "bell", "seven", "watermelon", "bell", "replay", "bar", "bell", "replay", "watermelon"
  ]
 };
 const E=id=>document.getElementById(id),H=()=>innerWidth<=650?80:110;
@@ -560,6 +593,44 @@ function roleSymbol(role){
 }
 function norm(v,n){return ((v%n)+n)%n}
 
+// ===== Ver.0.9.8: adjacent-symbol reel peeks =====
+const V098_SYMBOL_IMG={
+ seven:"images_symbols_seven.png",
+ bar:"images_symbols_bar.png",
+ bell:"images_symbols_bell.png",
+ replay:"images_symbols_replay.png",
+ cherry:"images_symbols_cherry.png",
+ watermelon:"images_symbols_watermelon.png"
+};
+function ensureReelPeeks(){
+ ["left","center","right"].forEach(k=>{
+   const reel=E("reel-"+k);
+   if(!reel || reel.querySelector(".reel-peek"))return;
+   const top=document.createElement("div");
+   top.className="reel-peek top";
+   top.innerHTML='<img alt="">';
+   const bottom=document.createElement("div");
+   bottom.className="reel-peek bottom";
+   bottom.innerHTML='<img alt="">';
+   reel.appendChild(top); reel.appendChild(bottom);
+ });
+ updateReelPeeks();
+}
+function updateReelPeeks(){
+ ["left","center","right"].forEach(k=>{
+   const reel=E("reel-"+k); if(!reel)return;
+   const idx=pressedCenterIndex(k), n=R[k].length;
+   // visibleTriplet = idx-1, idx, idx+1. Peek one more symbol above/below.
+   const above=R[k][norm(idx-2,n)];
+   const below=R[k][norm(idx+2,n)];
+   const ti=reel.querySelector(".reel-peek.top img");
+   const bi=reel.querySelector(".reel-peek.bottom img");
+   if(ti && V098_SYMBOL_IMG[above])ti.src=V098_SYMBOL_IMG[above];
+   if(bi && V098_SYMBOL_IMG[below])bi.src=V098_SYMBOL_IMG[below];
+ });
+}
+
+
 function visibleTriplet(k,centerIdx){
  const arr=R[k],n=arr.length;
  return {
@@ -568,6 +639,30 @@ function visibleTriplet(k,centerIdx){
    bottom:arr[norm(centerIdx+1,n)]
  };
 }
+function cherryPosition(){
+ const idx=pressedCenterIndex("left");
+ const trip=visibleTriplet("left",idx);
+ if(trip.top==="cherry")return "TOP";
+ if(trip.middle==="cherry")return "MIDDLE";
+ if(trip.bottom==="cherry")return "BOTTOM";
+ return "NONE";
+}
+function findCherryStop(kind){
+ const n=R.left.length;
+ const press=pressedCenterIndex("left");
+ for(let slide=0;slide<=ASSIST_COMA;slide++){
+   const center=norm(press-slide,n);
+   const trip=visibleTriplet("left",center);
+   if(kind==="WEAK" && (trip.top==="cherry"||trip.bottom==="cherry")){
+     return {idx:center,slide,hit:true};
+   }
+   if(kind==="STRONG" && trip.middle==="cherry"){
+     return {idx:center,slide,hit:true};
+   }
+ }
+ return {idx:press,slide:0,hit:false};
+}
+
 function isWinningSymbolTriplet(a,b,c){
  return (a==="bell"&&b==="bell"&&c==="bell") ||
         (a==="replay"&&b==="replay"&&c==="replay") ||
@@ -682,11 +777,25 @@ function allBonusSymbolsCaptured(){
  return stopHit.left && stopHit.center && stopHit.right;
 }
 function roleCaptured(){
- if(currentRole==="WEAK_CHERRY")return stopHit.left;
- if(currentRole==="STRONG_CHERRY")return stopHit.left; // right 7 is a strong-stop accent, not payout requirement
- if(currentRole==="WATERMELON"||currentRole==="BELL"||currentRole==="REPLAY")return stopHit.left&&stopHit.center&&stopHit.right;
- if(currentRole==="CHANCE")return true; // chance is an internal zero-payout role
- return true;
+ const L=centerSymbol("left"), C=centerSymbol("center"), RR=centerSymbol("right");
+
+ if(currentRole==="REPLAY") return L==="replay" && C==="replay" && RR==="replay";
+ if(currentRole==="BELL") return L==="bell" && C==="bell" && RR==="bell";
+ if(currentRole==="WATERMELON") return L==="watermelon" && C==="watermelon" && RR==="watermelon";
+
+ // 弱チェリー：左リール上段 or 下段（角チェリー）
+ if(currentRole==="WEAK_CHERRY"){
+   const pos=cherryPosition();
+   return pos==="TOP" || pos==="BOTTOM";
+ }
+
+ // 強チェリー：左リール中段チェリー
+ if(currentRole==="STRONG_CHERRY"){
+   return cherryPosition()==="MIDDLE";
+ }
+
+ if(currentRole==="CHANCE") return false;
+ return stopHit.left && stopHit.center && stopHit.right;
 }
 
 E("betBtn").onclick=()=>{
@@ -722,7 +831,7 @@ function actuallyStartSpin(){
  }else if(bonusMode){
    E("status").textContent=`${bonusMode} BONUS ${bonusTotal}/${bonusTarget}枚`;
  }else{
-   E("status").textContent="回転中… STOP!";
+   E("status").textContent=currentRole==="WATERMELON"?"スイカ成立：各リールBARを狙え！":"回転中… STOP!";
  }
  updateBonusGlow();
  startReelMotor();
@@ -757,7 +866,14 @@ function stop(k,b){
 
  const target=targetFor(k,currentRole);
  let idx=pressedCenterIndex(k),slide=0,hit=false;
- if(currentRole==="MISS" && missPlan){
+
+ if(k==="left" && currentRole==="WEAK_CHERRY"){
+   const assist=findCherryStop("WEAK");
+   idx=assist.idx;slide=assist.slide;hit=assist.hit;
+ }else if(k==="left" && currentRole==="STRONG_CHERRY"){
+   const assist=findCherryStop("STRONG");
+   idx=assist.idx;slide=assist.slide;hit=assist.hit;
+ }else if(currentRole==="MISS" && missPlan){
    idx=missPlan[k];
    slide=Math.min(ASSIST_COMA,Math.abs(norm(idx-pressedCenterIndex(k),R[k].length)));
    hit=true;
@@ -842,13 +958,26 @@ function finish(){
  }
  else if(currentRole==="WEAK_CHERRY"){
    flashCabinet("WEAK_CHERRY");
-   if(captured){awardCoins(1);msg="弱チェリー +1枚";playFileSE("seCherryFile",1,1)}
-   else msg="弱チェリー成立（取りこぼし）";
+   if(captured){
+     awardCoins(4);
+     msg="弱チェリー（角） +4枚";
+     playFileSE("seCherryFile",1,1);
+   }else{
+     msg="弱チェリー成立（取りこぼし）";
+     playFileSE("seCherryFile",1,0.7);
+   }
  }
  else if(currentRole==="STRONG_CHERRY"){
    flashCabinet("STRONG_CHERRY");
-   if(captured){awardCoins(1);msg="強チェリー +1枚";playFileSE("seCherryFile",1.05,1)}
-   else msg="強チェリー成立（取りこぼし）";
+   if(captured){
+     awardCoins(2);
+     msg="強チェリー（中段） +2枚";
+   }else{
+     msg="強チェリー成立（取りこぼし）";
+   }
+   // 強チェリー成立SE：チェリー音を2連続
+   playFileSE("seCherryFile",1.03,1);
+   setTimeout(()=>playFileSE("seCherryFile",1.03,1),140);
  }
  else if(currentRole==="CHANCE"){
    flashCabinet("CHANCE");
@@ -859,7 +988,7 @@ function finish(){
  // If this game newly stocked a bonus, keep rainbow until 7/BAR is actually aligned.
  if(bonusStock && !bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
    updateBonusGlow();
-   msg+=` / ${bonusStock}内部成立！ 次G ${bonusStock==="BIG"?"7":"BAR"}を狙え`;
+   msg+=` / ${bonusStock}内部成立！ ${bonusStock==="REG"&&currentRole==="WATERMELON"?"スイカ後もBAR狙い継続":"次G "+(bonusStock==="BIG"?"7":"BAR")+"を狙え"}`;
  }
 
  if(bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
@@ -969,5 +1098,7 @@ applyVolume(.65);
 
 sync();
 
+
+setTimeout(ensureReelPeeks,0);
 </script>
 </body></html>
