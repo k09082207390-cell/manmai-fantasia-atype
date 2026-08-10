@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.9.2：通常WAITを約1.5秒へ短縮。ボーナス図柄揃い時は5秒ウェイト。</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.9.3：通常WAITを約1.5秒へ短縮。ボーナス図柄揃い時は5秒ウェイト。</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -269,7 +269,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 #mf-kakutei.show{display:block}
 
 
-/* ===== Ver.0.9.9.2 WIDE REAL REEL WINDOW ===== */
+/* ===== Ver.0.9.9.3：リール回転速度を約1.4倍に高速化。5コマアシスト・停止制御は変更なし。
 /* リール全体を横・縦とも少し大きく */
 .reels{
   width:min(96%, 760px) !important;
@@ -308,7 +308,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.2.2</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.3.2</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -867,7 +867,7 @@ function actuallyStartSpin(){
  }
  updateBonusGlow();
  startReelMotor();
- start("left",32);start("center",35);start("right",38);
+ start("left",45);start("center",49);start("right",53);
  ["stopL","stopC","stopR"].forEach(id=>{E(id).disabled=false;E(id).classList.add("ready")});
  sync();
 }
