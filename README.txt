@@ -69,3 +69,12 @@ Ver.0.9.8.1 HOTFIX:
 ・上下チラ見せ描画がゲーム状態の初期化前に pressedCenterIndex() を呼ばないよう変更
 ・チラ見せは実際の表示インデックスから取得
 ・Ver.0.9.7の抽選/停止制御には変更なし
+
+
+Ver.0.9.8.2 REPAIR:
+・`Cannot access 'missPlan' before initialization` を根本修正
+・missPlan宣言をメインscriptの最上部へ移動
+・不安定だった上下チラ見せ用JavaScriptを一旦撤去
+・リール描画/レバー/STOP/抽選ロジックを優先して復旧
+・リール窓の奥行き感だけCSSで安全に維持
+・上下の実図柄チラ見せは、ゲーム復旧確認後に別方式で再実装予定
