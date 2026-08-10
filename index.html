@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.8.4</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.1</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
 .machine{width:min(850px,100%)}.logo{text-align:center}.logo img{width:min(520px,90vw);max-height:160px;object-fit:contain}.ver{text-align:center;color:#d6b46d;font-size:12px;font-weight:900;letter-spacing:.14em;margin-bottom:8px}
@@ -176,8 +176,44 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
  .volume-value{min-width:34px}
 }
 
+
+/* Ver.0.9 real-slot engine */
+.cab.flash-red{animation:cabRed .34s ease-out 1}
+.cab.flash-red3{animation:cabRed3 .78s linear 1}
+.cab.flash-green{animation:cabGreen .48s ease-out 1}
+.cab.flash-chance{animation:cabChance .55s ease-out 1}
+.cab.rainbow-hold{animation:cabRainbow .9s linear infinite}
+.cab.bonus-active{box-shadow:0 0 34px #ffd45d88,inset 0 0 28px #ffcf5230!important}
+@keyframes cabRed{
+ 0%,100%{filter:none}45%{filter:drop-shadow(0 0 28px #ff1d16) brightness(1.28)}
+}
+@keyframes cabRed3{
+ 0%,18%,36%,54%,72%,100%{filter:none}
+ 9%,27%,45%,63%,81%{filter:drop-shadow(0 0 30px #ff120c) brightness(1.35)}
+}
+@keyframes cabGreen{
+ 0%,100%{filter:none}45%{filter:drop-shadow(0 0 32px #20ff63) brightness(1.28)}
+}
+@keyframes cabChance{
+ 0%,100%{filter:none}45%{filter:drop-shadow(0 0 30px #a84cff) brightness(1.3)}
+}
+@keyframes cabRainbow{
+ 0%{box-shadow:0 0 34px #ff334f,inset 0 0 24px #ff334f22}
+ 17%{box-shadow:0 0 34px #ff9a27,inset 0 0 24px #ff9a2722}
+ 34%{box-shadow:0 0 34px #fff13a,inset 0 0 24px #fff13a22}
+ 51%{box-shadow:0 0 34px #38ff76,inset 0 0 24px #38ff7622}
+ 68%{box-shadow:0 0 34px #31c9ff,inset 0 0 24px #31c9ff22}
+ 85%{box-shadow:0 0 34px #b54cff,inset 0 0 24px #b54cff22}
+ 100%{box-shadow:0 0 34px #ff334f,inset 0 0 24px #ff334f22}
+}
+.wait-badge{
+ display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;
+ background:#50120d;color:#ffd8a0;border:1px solid #d88131;font-size:10px;font-weight:1000;
+ letter-spacing:.08em;vertical-align:middle
+}
+
 </style></head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.8.4</div>
+<div class="cabinet-top"><img src="cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.1</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -221,7 +257,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
       </div>
     </div>
   </div>
-  <div class="note">Ver.0.8.4：リール速度を約1.4倍に高速化。BET・LEVER・STOP・回転中モーターSEを強化。</div>
+  <div class="note">Ver.0.9.1：実音源SEを搭載。LEVER / STOP / BELL / REPLAY / CHERRY / BONUSテンパイ音。</div>
 </div>
 </div></section></main>
 
@@ -237,6 +273,14 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 <audio id="bgmBig2" src="big_bonus_2.mp3" preload="auto"></audio>
 <audio id="bgmBig3" src="big_bonus_3.mp3" preload="auto"></audio>
 <audio id="bgmBar" src="bar_bonus.mp3" preload="auto"></audio>
+
+
+<audio id="seLeverFile" preload="auto" src="se_lever.mp3"></audio>
+<audio id="seStopFile" preload="auto" src="se_stop.mp3"></audio>
+<audio id="seBellFile" preload="auto" src="se_bell.mp3"></audio>
+<audio id="seReplayFile" preload="auto" src="se_replay.mp3"></audio>
+<audio id="seCherryFile" preload="auto" src="se_cherry.mp3"></audio>
+<audio id="seTenpaiFile" preload="auto" src="se_tenpai.mp3"></audio>
 
 <script>
 const S={seven:"seven.png",bar:"bar.png",bell:"bell.png",cherry:"cherry.png",watermelon:"watermelon.png",replay:"replay.png"};
@@ -316,6 +360,18 @@ function stopReelMotor(){
    }
  }catch(e){reelMotorNodes=null;}
 }
+
+function playFileSE(id,rate=1,vol=1){
+ if(!soundOn)return;
+ try{
+   const base=E(id); if(!base)return;
+   const a=base.cloneNode(true);
+   a.volume=Math.max(0,Math.min(1,masterVolume*vol));
+   a.playbackRate=rate;
+   const pr=a.play();
+   if(pr&&pr.catch)pr.catch(()=>{});
+ }catch(e){console.warn("file SE skipped:",e);}
+}
 const SE={
  bet(){
    tone(190,.045,.075,"square");
@@ -323,22 +379,16 @@ const SE={
    noiseBurst(.045,.035,1700);
  },
  lever(){
-   tone(88,.075,.08,"sawtooth");
-   tone(132,.08,.06,"square",.045);
-   noiseBurst(.07,.04,650);
+   playFileSE("seLeverFile",1,1);
  },
  stop(n){
-   tone(510+n*55,.035,.075,"square");
-   tone(255+n*25,.045,.045,"triangle",.018);
-   noiseBurst(.035,.045,2100);
+   playFileSE("seStopFile",1+(n-1)*.018,1);
  },
  bell(){
-   tone(720,.055,.05,"triangle");
-   tone(960,.08,.04,"triangle",.045);
+   playFileSE("seBellFile",1,1);
  },
  replay(){
-   tone(390,.045,.04,"triangle");
-   tone(520,.07,.035,"triangle",.045);
+   playFileSE("seReplayFile",1,1);
  },
  rare(){
    tone(250,.065,.07,"sawtooth");
@@ -384,14 +434,23 @@ function startBonusBgm(type){
   }catch(e){console.warn("Bonus BGM skipped:",e);}
 }
 
-let credit=50,bet=0,pay=0,game=0,spinning=false,order=0,currentRole="MISS";
+let credit=50,bet=0,pay=0,game=0,spinning=false,waiting=false,order=0,currentRole="MISS";
 let off={left:0,center:0,right:0},timer={},stopped={left:true,center:true,right:true};
-let bonusStock=null;      // BIG or REG waiting to be aligned
-let bonusMode=null;       // BIG or REG currently being played
-let bonusLeft=0;
+let stopHit={left:false,center:false,right:false};
+let replayReady=false;
+let bonusStock=null;      // BIG / REG: internal bonus carried until aligned
+let bonusMode=null;       // BIG / REG currently paying out
 let bonusTotal=0;
+let bonusTarget=0;
+let lastSpinStart=0;
+let refillCount=0;
 
 const SETTING=6;
+const BET_PER_GAME=3;
+const CREDIT_MAX=50;
+const ASSIST_COMA=5;
+const REEL_WAIT_MS=4100;
+
 const P={
   BIG:1/220,
   REG:1/260,
@@ -413,7 +472,6 @@ function drawRole(){
  if(bonusStock) return bonusStock==="BIG"?"BIG_ALIGN":"REG_ALIGN";
  if(bonusMode) return Math.random()<.76?"BELL":(Math.random()<.55?"REPLAY":"MISS");
 
- // One internal role per game. Rare roles are checked before common roles.
  const r=Math.random();
  let c=0;
  const roles=[
@@ -433,135 +491,322 @@ function drawRole(){
      return role;
    }
  }
- // Standalone bonus lottery.
  if(Math.random()<P.BIG){bonusStock="BIG";return "MISS";}
  if(Math.random()<P.REG){bonusStock="REG";return "MISS";}
  return "MISS";
 }
+
 function build(k){
  const strip=E(k+"Strip"),seq=[...R[k],...R[k],...R[k]];
  strip.innerHTML=seq.map(x=>`<div class="symbol symbol-${x}"><img src="${S[x]}" alt="${x}"></div>`).join("");
- off[k]=R[k].length*H();strip.style.transform=`translateY(-${off[k]}px)`;
+ off[k]=R[k].length*H();
+ strip.style.transform=`translateY(-${off[k]}px)`;
 }
 ["left","center","right"].forEach(build);
 
 function sync(){
- E("credit").textContent=credit;E("bet").textContent=bet;E("pay").textContent=pay;E("game").textContent=game;
- E("betBtn").disabled=spinning||bet||credit<3;
- E("leverBtn").disabled=spinning||bet!==3;
+ E("credit").textContent=credit;
+ E("bet").textContent=bet;
+ E("pay").textContent=pay;
+ E("game").textContent=game;
+
+ const needBet=!replayReady && bet!==BET_PER_GAME;
+ E("betBtn").disabled=spinning||waiting||!needBet;
+ E("leverBtn").disabled=spinning||waiting||bet!==BET_PER_GAME;
+
+ if(replayReady && !spinning && !waiting && bet!==BET_PER_GAME){
+   bet=BET_PER_GAME;
+   E("bet").textContent=bet;
+   E("leverBtn").disabled=false;
+ }
+}
+function ensureCredit(){
+ if(credit>=BET_PER_GAME)return false;
+ credit=CREDIT_MAX;
+ refillCount++;
+ E("status").textContent=`CREDIT自動補充 → ${CREDIT_MAX}枚`;
+ return true;
+}
+function awardCoins(n){
+ const room=Math.max(0,CREDIT_MAX-credit);
+ const toCredit=Math.min(room,n);
+ credit+=toCredit;
+ const overflow=n-toCredit;
+ if(overflow>0)pay+=overflow;
+ return {toCredit,overflow};
 }
 function roleSymbol(role){
- return {BIG:"seven",REG:"bar",BIG_ALIGN:"seven",REG_ALIGN:"bar",BELL:"bell",REPLAY:"replay",WATERMELON:"watermelon",WEAK_CHERRY:"cherry",STRONG_CHERRY:"cherry"}[role]||null;
+ return {
+  BIG_ALIGN:"seven",REG_ALIGN:"bar",
+  BELL:"bell",REPLAY:"replay",WATERMELON:"watermelon",
+  WEAK_CHERRY:"cherry",STRONG_CHERRY:"cherry"
+ }[role]||null;
 }
-function findIndex(k,role){
- if((role==="WEAK_CHERRY"||role==="STRONG_CHERRY")&&k!=="left")return null;
- const sym=roleSymbol(role); if(!sym)return null;
- const c=[];R[k].forEach((x,i)=>{if(x===sym)c.push(i)});
- return c.length?c[Math.floor(Math.random()*c.length)]:null;
+function norm(v,n){return ((v%n)+n)%n}
+function pressedCenterIndex(k){
+ const n=R[k].length,h=H();
+ return norm(Math.round(off[k]/h)-n+1,n);
 }
-function setCenter(k,idx){
+function findAssistIndex(k,symbol,maxSlide=ASSIST_COMA){
+ if(!symbol)return null;
+ const arr=R[k],n=arr.length,press=pressedCenterIndex(k);
+ // Reel visual moves toward decreasing strip indexes in this implementation.
+ for(let slide=0;slide<=maxSlide;slide++){
+   const idx=norm(press-slide,n);
+   if(arr[idx]===symbol)return {idx,slide,hit:true};
+ }
+ return {idx:press,slide:0,hit:false};
+}
+function targetFor(k,role){
+ if(role==="WEAK_CHERRY"){
+   if(k!=="left")return null;
+   return "cherry";
+ }
+ if(role==="STRONG_CHERRY"){
+   if(k==="left")return "cherry";
+   if(k==="right")return "seven";
+   return null;
+ }
+ if(role==="CHANCE"){
+   return {left:"watermelon",center:"bell",right:"seven"}[k];
+ }
+ return roleSymbol(role);
+}
+function setCenter(k,idx,slide=0){
  const h=H(),n=R[k].length;
- if(idx==null)idx=Math.floor(Math.random()*n);
+ if(idx==null)idx=pressedCenterIndex(k);
  off[k]=(n+idx-1)*h;
  const strip=E(k+"Strip");
- strip.style.transition="transform .10s cubic-bezier(.2,.75,.35,1)";
+ const dur=Math.min(.22,.075+slide*.025);
+ strip.style.transition=`transform ${dur}s cubic-bezier(.12,.78,.22,1)`;
  strip.style.transform=`translateY(-${off[k]}px)`;
- setTimeout(()=>strip.style.transition="",120);
+ setTimeout(()=>strip.style.transition="",Math.ceil(dur*1000)+35);
 }
+function flashCabinet(kind){
+ const cab=document.querySelector(".cab");
+ if(!cab)return;
+ const cls={
+  WEAK_CHERRY:"flash-red",
+  STRONG_CHERRY:"flash-red3",
+  WATERMELON:"flash-green",
+  CHANCE:"flash-chance"
+ }[kind];
+ if(!cls)return;
+ cab.classList.remove(cls);
+ void cab.offsetWidth;
+ cab.classList.add(cls);
+ setTimeout(()=>cab.classList.remove(cls),kind==="STRONG_CHERRY"?850:620);
+}
+function updateBonusGlow(){
+ const cab=document.querySelector(".cab");
+ if(!cab)return;
+ cab.classList.toggle("rainbow-hold",!!bonusStock && !bonusMode);
+ cab.classList.toggle("bonus-active",!!bonusMode);
+ if(bonusStock)E("manLamp").classList.add("on");
+ else if(!bonusMode)E("manLamp").classList.remove("on");
+}
+function allBonusSymbolsCaptured(){
+ return stopHit.left && stopHit.center && stopHit.right;
+}
+function roleCaptured(){
+ if(currentRole==="WEAK_CHERRY")return stopHit.left;
+ if(currentRole==="STRONG_CHERRY")return stopHit.left; // right 7 is a strong-stop accent, not payout requirement
+ if(currentRole==="WATERMELON"||currentRole==="BELL"||currentRole==="REPLAY")return stopHit.left&&stopHit.center&&stopHit.right;
+ if(currentRole==="CHANCE")return true; // chance is an internal zero-payout role
+ return true;
+}
+
 E("betBtn").onclick=()=>{
- if(credit<3||bet)return;
- credit-=3;bet=3;pay=0;try{SE.bet();}catch(e){console.warn("audio ignored",e);}
- E("status").textContent=bonusStock?`${bonusStock==="BIG"?"7":"BAR"}を狙え！`:"レバーON！";
+ if(spinning||waiting||bet===BET_PER_GAME)return;
+ ensureCredit();
+ credit-=BET_PER_GAME;
+ bet=BET_PER_GAME;
+ replayReady=false;
+ try{SE.bet();}catch(e){console.warn("audio ignored",e);}
+ E("status").textContent=bonusStock?`${bonusStock==="BIG"?"7":"BAR"}を狙え！（5コマアシスト）`:"3枚掛け完了 / レバーON";
  sync();
 };
+
 function start(k,speed){
- stopped[k]=false;const strip=E(k+"Strip"),total=R[k].length*H();
+ stopped[k]=false;
+ const strip=E(k+"Strip"),total=R[k].length*H();
  timer[k]=setInterval(()=>{
-   off[k]-=speed;if(off[k]<=total*.15)off[k]+=total;
+   off[k]-=speed;
+   if(off[k]<=total*.15)off[k]+=total;
    strip.style.transform=`translateY(-${off[k]}px)`;
  },16);
 }
-E("leverBtn").onclick=()=>{
- if(spinning||bet!==3)return;
- spinning=true;game++;order=0;pay=0;currentRole=drawRole();try{SE.lever();}catch(e){console.warn("audio ignored",e);}
+function actuallyStartSpin(){
+ waiting=false;
+ spinning=true;
+ game++;
+ order=0;
+ stopHit={left:false,center:false,right:false};
+ lastSpinStart=Date.now();
+
  if(bonusStock){
-   E("status").textContent=`${bonusStock==="BIG"?"7":"BAR"}を狙え！`;
+   E("status").textContent=`${bonusStock==="BIG"?"7":"BAR"}を狙え！ 最大5コマ引込`;
  }else if(bonusMode){
-   E("status").textContent=`${bonusMode} BONUS 残り${bonusLeft}G`;
+   E("status").textContent=`${bonusMode} BONUS ${bonusTotal}/${bonusTarget}枚`;
  }else{
    E("status").textContent="回転中… STOP!";
  }
- if(!bonusStock&&!bonusMode)E("manLamp").classList.remove("on");
- startReelMotor();start("left",32);start("center",35);start("right",38);
+ updateBonusGlow();
+ startReelMotor();
+ start("left",32);start("center",35);start("right",38);
  ["stopL","stopC","stopR"].forEach(id=>{E(id).disabled=false;E(id).classList.add("ready")});
  sync();
+}
+E("leverBtn").onclick=()=>{
+ if(spinning||waiting||bet!==BET_PER_GAME)return;
+
+ // Internal role is decided at LEVER ON, even if the reel wait is still active.
+ currentRole=drawRole();
+ try{SE.lever();}catch(e){console.warn("audio ignored",e);}
+ updateBonusGlow();
+
+ const elapsed=Date.now()-lastSpinStart;
+ const wait=Math.max(0,REEL_WAIT_MS-elapsed);
+ if(wait>35 && lastSpinStart>0){
+   waiting=true;
+   E("status").innerHTML=`WAIT <span class="wait-badge">${(wait/1000).toFixed(1)}s</span>`;
+   sync();
+   setTimeout(actuallyStartSpin,wait);
+ }else{
+   actuallyStartSpin();
+ }
 };
+
 function stop(k,b){
  if(!spinning||stopped[k])return;
- clearInterval(timer[k]);stopped[k]=true;
- let forced=(currentRole==="MISS")?null:findIndex(k,currentRole);
- // Strong cherry: left cherry + right 7 as a provisional strong-cherry stop form.
- if(currentRole==="STRONG_CHERRY" && k==="right") forced=findIndex("right","BIG");
- // Chance pattern: intentionally create a conspicuous non-paying mixed stop.
- if(currentRole==="CHANCE"){
-   if(k==="left") forced=findIndex("left","WATERMELON");
-   if(k==="center") forced=findIndex("center","BELL");
-   if(k==="right") forced=findIndex("right","BIG");
- }
- setCenter(k,forced);
- b.disabled=true;b.classList.remove("ready");order++;
- if(order===3){stopReelMotor();finish();}
-}
-function finish(){
- spinning=false;bet=0;let msg="ハズレ";
+ clearInterval(timer[k]);
+ stopped[k]=true;
 
- if(currentRole==="BIG_ALIGN"||currentRole==="REG_ALIGN"){
-   const type=bonusStock;
-   bonusStock=null;bonusMode=type;
-   bonusLeft=type==="BIG"?30:12;bonusTotal=0;
-   E("manLamp").classList.add("on");
-   msg=`${type} BONUS START!`;try{SE.bonus();}catch(e){console.warn("audio ignored",e);}startBonusBgm(type);
+ const target=targetFor(k,currentRole);
+ let idx=pressedCenterIndex(k),slide=0,hit=false;
+ if(target){
+   const assist=findAssistIndex(k,target,ASSIST_COMA);
+   idx=assist.idx;slide=assist.slide;hit=assist.hit;
  }
- else if(currentRole==="BIG"||currentRole==="REG"){
-   bonusStock=currentRole;
-   E("manLamp").classList.add("on");
-   msg=`${currentRole} 内部成立！ 次G ${currentRole==="BIG"?"7":"BAR"}を狙え`;
- }
- else if(currentRole==="BELL"){
-   pay=bonusMode?15:8;credit+=pay;bonusTotal+=bonusMode?pay:0;msg=`ベル +${pay}枚`;try{SE.bell();}catch(e){console.warn("audio ignored",e);}
- }
- else if(currentRole==="REPLAY"){
-   pay=3;credit+=3;msg="リプレイ";try{SE.replay();}catch(e){console.warn("audio ignored",e);}
- }
- else if(currentRole==="WATERMELON"){
-   pay=8;credit+=8;msg="スイカ +8枚";try{SE.rare();}catch(e){console.warn("audio ignored",e);}
- }
- else if(currentRole==="WEAK_CHERRY"){
-   pay=1;credit+=1;msg="弱チェリー +1枚";try{SE.rare();}catch(e){console.warn("audio ignored",e);}
- }
- else if(currentRole==="STRONG_CHERRY"){
-   pay=1;credit+=1;msg="強チェリー +1枚";try{SE.chance();}catch(e){console.warn("audio ignored",e);}
- }
- else if(currentRole==="CHANCE"){
-   pay=0;msg="チャンス目！";try{SE.chance();}catch(e){console.warn("audio ignored",e);}
- }
+ stopHit[k]=target?hit:true;
+ setCenter(k,idx,slide);
 
- if(bonusStock && !bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
-   E("manLamp").classList.add("on");
-   msg+=` / ${bonusStock}同時当選！ 次G ${bonusStock==="BIG"?"7":"BAR"}を狙え`;
- }
- if(bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
-   bonusLeft--;
-   if(bonusLeft<=0){
-     msg+=` / ${bonusMode}終了 TOTAL ${bonusTotal}枚`;
-     bonusMode=null;bonusTotal=0;stopBgm();
-     E("manLamp").classList.remove("on");
-   }else{
-     msg+=` / 残り${bonusLeft}G`;
+ b.disabled=true;b.classList.remove("ready");
+ order++;
+ try{SE.stop(order);}catch(e){console.warn("audio ignored",e);}
+ if(order===2 && bonusStock && !bonusMode){
+   const stoppedKeys=["left","center","right"].filter(x=>stopped[x]);
+   if(stoppedKeys.length===2 && stoppedKeys.every(x=>stopHit[x])){
+     setTimeout(()=>playFileSE("seTenpaiFile",1,1),70);
    }
  }
- E("status").textContent=msg;sync();
+ if(order===3){
+   stopReelMotor();
+   setTimeout(finish,150);
+ }
 }
+
+function startBonus(type){
+ bonusStock=null;
+ bonusMode=type;
+ bonusTotal=0;
+ bonusTarget=type==="BIG"?250:100;
+ replayReady=false;
+ updateBonusGlow();
+ try{SE.bonus();}catch(e){console.warn("audio ignored",e);}
+ startBonusBgm(type);
+ return `${type} BONUS START! 目標 ${bonusTarget}枚`;
+}
+function endBonus(){
+ const type=bonusMode,total=bonusTotal;
+ bonusMode=null;bonusTotal=0;bonusTarget=0;
+ stopBgm();updateBonusGlow();
+ return `${type}終了 TOTAL ${total}枚`;
+}
+
+function finish(){
+ spinning=false;
+ let msg="ハズレ";
+ const captured=roleCaptured();
+
+ // BONUS is never started by internal hit alone. All 3 bonus symbols must be aligned.
+ if(currentRole==="BIG_ALIGN"||currentRole==="REG_ALIGN"){
+   if(allBonusSymbolsCaptured()){
+     msg=startBonus(bonusStock);
+   }else{
+     msg=`${bonusStock}成立中 / ${bonusStock==="BIG"?"7":"BAR"}を狙え（取りこぼし・持越し）`;
+     updateBonusGlow();
+   }
+ }
+ else if(currentRole==="BELL"){
+   if(captured){
+     const coins=bonusMode?15:8;
+     awardCoins(coins);
+     if(bonusMode)bonusTotal+=coins;
+     msg=`ベル +${coins}枚`;
+     try{SE.bell();}catch(e){}
+   }else msg="ベル成立（取りこぼし）";
+ }
+ else if(currentRole==="REPLAY"){
+   if(captured){
+     replayReady=true;
+     msg="REPLAY / 次ゲーム3枚掛け不要";
+     try{SE.replay();}catch(e){}
+   }else{
+     // Safety fallback: internal replay still grants replay even on an impossible visual miss.
+     replayReady=true;
+     msg="REPLAY成立 / 再遊技";
+   }
+ }
+ else if(currentRole==="WATERMELON"){
+   flashCabinet("WATERMELON");
+   if(captured){awardCoins(8);msg="スイカ +8枚";try{SE.rare();}catch(e){}}
+   else msg="スイカ成立（取りこぼし）";
+ }
+ else if(currentRole==="WEAK_CHERRY"){
+   flashCabinet("WEAK_CHERRY");
+   if(captured){awardCoins(1);msg="弱チェリー +1枚";playFileSE("seCherryFile",1,1)}
+   else msg="弱チェリー成立（取りこぼし）";
+ }
+ else if(currentRole==="STRONG_CHERRY"){
+   flashCabinet("STRONG_CHERRY");
+   if(captured){awardCoins(1);msg="強チェリー +1枚";playFileSE("seCherryFile",1.05,1)}
+   else msg="強チェリー成立（取りこぼし）";
+ }
+ else if(currentRole==="CHANCE"){
+   flashCabinet("CHANCE");
+   msg="チャンス目！";
+   try{SE.chance();}catch(e){}
+ }
+
+ // If this game newly stocked a bonus, keep rainbow until 7/BAR is actually aligned.
+ if(bonusStock && !bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
+   updateBonusGlow();
+   msg+=` / ${bonusStock}内部成立！ 次G ${bonusStock==="BIG"?"7":"BAR"}を狙え`;
+ }
+
+ if(bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
+   if(bonusTotal>=bonusTarget){
+     msg+=` / ${endBonus()}`;
+   }else{
+     msg+=` / ${bonusMode} ${bonusTotal}/${bonusTarget}枚`;
+   }
+ }
+
+ // 3-bet fixed: only replay carries the bet forward for free.
+ if(replayReady){
+   bet=BET_PER_GAME;
+ }else{
+   bet=0;
+ }
+ if(credit<BET_PER_GAME && !replayReady){
+   ensureCredit();
+   msg+=` / CREDIT自動補充`;
+ }
+ E("status").textContent=msg;
+ sync();
+}
+
 E("stopL").onclick=()=>stop("left",E("stopL"));
 E("stopC").onclick=()=>stop("center",E("stopC"));
 E("stopR").onclick=()=>stop("right",E("stopR"));
@@ -595,11 +840,11 @@ function autoSchedule(ms=250){
 function autoStep(){
  if(!autoMode)return;
  try{
-   if(!E("betBtn").disabled){E("betBtn").click();return autoSchedule(220);}
-   if(!E("leverBtn").disabled){E("leverBtn").click();return autoSchedule(700);}
-   if(!E("stopL").disabled){E("stopL").click();return autoSchedule(260);}
-   if(!E("stopC").disabled){E("stopC").click();return autoSchedule(260);}
-   if(!E("stopR").disabled){E("stopR").click();return autoSchedule(700);}
+   if(!E("betBtn").disabled){E("betBtn").click();return autoSchedule(180);}
+   if(!E("leverBtn").disabled){E("leverBtn").click();return autoSchedule(500);}
+   if(!E("stopL").disabled){E("stopL").click();return autoSchedule(220);}
+   if(!E("stopC").disabled){E("stopC").click();return autoSchedule(220);}
+   if(!E("stopR").disabled){E("stopR").click();return autoSchedule(520);}
  }catch(e){console.warn("AUTO skipped:",e);}
  autoSchedule(220);
 }
@@ -617,7 +862,7 @@ function applyVolume(v){
  const slider=E("volumeSlider"),label=E("volumeValue");
  if(slider)slider.value=pct;
  if(label)label.textContent=pct+"%";
- ["bgmBig1","bgmBig2","bgmBig3","bgmBar"].forEach(id=>{
+ ["bgmBig1","bgmBig2","bgmBig3","bgmBar","seLeverFile","seStopFile","seBellFile","seReplayFile","seCherryFile","seTenpaiFile"].forEach(id=>{
    const a=E(id); if(a)a.volume=masterVolume;
  });
  if(reelMotorNodes && reelMotorNodes.g){
