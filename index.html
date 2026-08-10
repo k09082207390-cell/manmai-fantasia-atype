@@ -1,16 +1,230 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>万枚ファンタジア A-TYPE Ver.0.9.3</title>
-<link rel="stylesheet" href="css/style.css">
+<style>
+
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
+.machine{width:min(850px,100%)}.logo{text-align:center}.logo img{width:min(520px,90vw);max-height:160px;object-fit:contain}.ver{text-align:center;color:#d6b46d;font-size:12px;font-weight:900;letter-spacing:.14em;margin-bottom:8px}
+.cab{padding:16px;border-radius:28px;border:3px solid #8d5d20;background:linear-gradient(145deg,#28140e,#09090b 32%,#1b1013);box-shadow:inset 0 0 0 3px #ffd76d44,0 20px 50px #000}
+.lamp{height:48px;border:2px solid #59401d;border-radius:16px;display:flex;justify-content:center;align-items:center;font-size:26px;font-weight:1000;color:#50300c;background:#0d0907;margin-bottom:10px;transition:.18s}.lamp.on{color:#fff7b2;background:radial-gradient(circle,#fff596 0,#ffc72c 28%,#8d3b00 58%,#150800 100%);text-shadow:0 0 8px #fff,0 0 22px #ffd21f;box-shadow:0 0 28px #ffc400aa,inset 0 0 20px #fff6}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}.cell{background:#020203;border:1px solid #40372f;border-radius:9px;padding:7px;text-align:center}.cell small{display:block;color:#948a81;font-size:8px;letter-spacing:.12em}.cell b{font:900 23px ui-monospace,monospace}
+.window{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px;background:#050505;border:4px solid #c59034;border-radius:14px;overflow:hidden}.line{position:absolute;z-index:9;left:8px;right:8px;top:50%;height:3px;background:#ff263a;box-shadow:0 0 10px #ff263a}
+.reel{height:330px;overflow:hidden;background:#fff;border:2px solid #222;border-radius:5px;position:relative}.reel:before,.reel:after{content:"";position:absolute;left:0;right:0;height:33%;z-index:4;pointer-events:none}.reel:before{top:0;background:linear-gradient(#0008,transparent)}.reel:after{bottom:0;background:linear-gradient(transparent,#0008)}
+.strip{position:absolute;left:0;right:0;top:0;will-change:transform}.symbol{height:110px;border-bottom:1px solid #ddd;display:flex;align-items:center;justify-content:center}.symbol img{max-width:88%;max-height:92px;object-fit:contain;filter:drop-shadow(0 2px 2px #0005)}
+.controls{margin-top:13px;padding:13px;border:1px solid #67491f;border-radius:16px;background:#0a0a0c}.topBtns{display:flex;gap:10px;justify-content:center}.btn{height:50px;border-radius:999px;border:2px solid #775322;background:linear-gradient(#39281d,#120d0b);color:#fff;font-weight:1000;padding:0 28px}.bet{color:#ffda61}.lever{height:58px;color:#fff0aa}.btn:disabled,.stop:disabled{opacity:.35;cursor:default}.stops{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:11px}.stop{height:64px;border-radius:15px;border:3px solid #741421;background:radial-gradient(circle,#f34b59,#a20b18 65%,#43040a);color:#fff;font-weight:1000;font-size:16px;box-shadow:inset 0 0 14px #fff3,0 5px 10px #000}.stop.ready{box-shadow:0 0 18px #ff2039,inset 0 0 15px #fff5}.status{text-align:center;min-height:24px;margin-top:10px;color:#ffe1a0;font-weight:900}.note{text-align:center;font-size:10px;color:#9c9187;margin-top:7px}
+
+.symbol-seven img{width:126%;height:126%;max-width:none;max-height:none;object-fit:contain}
+.symbol-bar img{width:112%;height:112%;max-width:none;max-height:none;object-fit:contain}
+.symbol-bell img,.symbol-cherry img,.symbol-watermelon img,.symbol-replay img{width:88%;height:88%;object-fit:contain}
+
+@media(max-width:650px){body{padding:5px}.cab{padding:8px}.reel{height:240px}.symbol{height:80px}.symbol img{max-height:66px}.hud{grid-template-columns:repeat(2,1fr)}}
+
+.paytable-btn{
+  margin-top:10px;padding:10px 20px;border:2px solid #d7a928;border-radius:10px;
+  background:linear-gradient(#4a0b0b,#170303);color:#ffd95a;font-weight:900;
+  letter-spacing:.08em;cursor:pointer;box-shadow:0 0 14px #d7a92855;
+}
+.paytable-modal{
+  display:none;position:fixed;inset:0;z-index:9999;background:#000e;
+  align-items:center;justify-content:center;padding:18px;box-sizing:border-box;
+}
+.paytable-modal.open{display:flex}
+.paytable-wrap{position:relative;max-width:1500px;width:100%;max-height:96vh;text-align:center}
+.paytable-img{max-width:100%;max-height:90vh;object-fit:contain;border:2px solid #d7a928;border-radius:10px}
+.paytable-close{
+  position:absolute;right:6px;top:6px;width:44px;height:44px;border-radius:50%;
+  border:2px solid #fff;background:#111d;color:#fff;font-size:28px;font-weight:bold;cursor:pointer
+}
+
+.soundRow{display:flex;justify-content:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.soundBtn{padding:8px 14px;border-radius:10px;border:1px solid #76562a;background:#17110d;color:#ffd76c;font-weight:900;cursor:pointer}
+.soundBtn.off{opacity:.45}
+
+.modern-controls{
+ position:relative;overflow:hidden;padding:18px 20px 16px!important;
+ background:linear-gradient(180deg,#15171a,#08090b 72%,#030304)!important;
+ border:2px solid #6e5529!important;box-shadow:inset 0 0 0 2px #d7af5430,0 10px 30px #0008;
+}
+.control-grid{display:grid;grid-template-columns:220px 1fr;gap:28px;align-items:end;max-width:760px;margin:0 auto}
+.left-control{position:relative;min-height:170px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding-left:18px}
+.maxbet-btn{
+ position:absolute;left:4px;top:2px;width:78px;height:78px;border-radius:50%;border:6px solid #b8bec4;
+ background:radial-gradient(circle at 36% 30%,#fff7aa 0 6%,#ffcb24 17%,#d79200 45%,#754000 76%,#271400 100%);
+ box-shadow:inset 0 0 0 4px #3f2600,0 7px 0 #383b3e,0 10px 20px #000b;
+ color:#1b1000;font-weight:1000;line-height:.9;text-shadow:0 1px #fff4a7;cursor:pointer;z-index:2;
+}
+.maxbet-btn .small{display:block;font-size:12px}.maxbet-btn span:last-child{font-size:20px}
+.maxbet-btn:disabled{filter:grayscale(.5);opacity:.45}
+.lever-modern{
+ position:relative;width:116px;height:116px;margin-left:72px;border:0;background:transparent;cursor:pointer;
+}
+.lever-modern:disabled{opacity:.4;filter:grayscale(.7)}
+.lever-ball{
+ position:absolute;left:14px;top:0;width:64px;height:64px;border-radius:50%;
+ background:radial-gradient(circle at 34% 26%,#f1f3f5 0 8%,#8d949b 22%,#2b2f34 50%,#070809 76%);
+ border:5px solid #c7ccd1;box-shadow:inset 0 0 0 3px #15181b,0 5px 12px #000c;z-index:3;
+}
+.lever-stem{
+ position:absolute;left:67px;top:50px;width:18px;height:54px;border-radius:8px;
+ background:linear-gradient(90deg,#737a80,#e0e4e7,#4f555a);transform:rotate(18deg);transform-origin:top center;
+ box-shadow:0 3px 8px #000a;
+}
+.lever-base{
+ position:absolute;left:49px;bottom:0;width:72px;height:30px;border-radius:50%;
+ background:radial-gradient(ellipse,#565c61,#181a1d 62%,#050607);border:4px solid #9ca2a8;
+ box-shadow:0 5px 10px #000a;
+}
+.lever-modern:active .lever-ball{transform:translate(7px,7px)}
+.lever-label{margin-left:91px;margin-top:-4px;font-size:11px;font-weight:900;letter-spacing:.14em;color:#bfc4c9}
+
+.right-control{display:flex;flex-direction:column;align-items:center}
+.stop-label{font-size:11px;font-weight:900;letter-spacing:.16em;color:#b7bbc0;margin-bottom:8px}
+.modern-stops{display:flex!important;gap:18px!important;justify-content:center}
+.modern-stop{
+ width:110px!important;height:110px!important;min-width:110px!important;border-radius:50%!important;
+ border:7px solid #c5c9cd!important;
+ background:radial-gradient(circle at 35% 27%,#ffb2a7 0 5%,#ff4938 17%,#cf160d 47%,#760500 72%,#2d0000 100%)!important;
+ box-shadow:inset 0 0 0 4px #5a0502,0 8px 0 #3b3e41,0 12px 22px #000d!important;
+ color:white!important;font-size:30px!important;font-weight:1000!important;text-shadow:0 2px 2px #450000!important;
+}
+.modern-stop.ready{box-shadow:inset 0 0 0 4px #5a0502,0 8px 0 #3b3e41,0 12px 22px #000d,0 0 24px #ff3828!important}
+.modern-stop:active{transform:translateY(6px);box-shadow:inset 0 0 0 4px #5a0502,0 2px 0 #3b3e41,0 5px 10px #000c!important}
+.auto-btn{
+ margin-top:14px;padding:9px 20px;border-radius:999px;border:2px solid #7b8085;
+ background:linear-gradient(#30343a,#15171a);color:#c9cdd1;font-weight:1000;letter-spacing:.08em;cursor:pointer;
+}
+.auto-btn.on{color:#baffc5;border-color:#4cff78;box-shadow:0 0 18px #35ff65;background:linear-gradient(#164122,#09170d)}
+.subcontrols{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.soundRow{margin-top:0!important}
+.frog-corner{position:absolute;bottom:-6px;pointer-events:none;opacity:.92;z-index:0}
+.frog-corner img{width:116px;filter:drop-shadow(0 5px 7px #0008)}
+.frog-left{left:-18px}.frog-right{right:-16px;transform:scaleX(-1)}
+.control-grid,.status,.subcontrols,.note{position:relative;z-index:1}
+@media(max-width:700px){
+ .control-grid{grid-template-columns:145px 1fr;gap:10px}
+ .left-control{min-height:140px;padding-left:0}
+ .maxbet-btn{width:62px;height:62px;border-width:5px}.maxbet-btn span:last-child{font-size:15px}
+ .lever-modern{width:92px;height:98px;margin-left:46px;transform:scale(.82);transform-origin:left bottom}
+ .lever-label{margin-left:52px}
+ .modern-stops{gap:8px!important}
+ .modern-stop{width:74px!important;height:74px!important;min-width:74px!important;border-width:5px!important;font-size:20px!important}
+ .frog-corner img{width:78px}
+}
+
+/* Ver.0.8.2 cabinet integration */
+body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 100%)!important}
+.machine{width:min(980px,100%)!important;padding:10px 8px 28px}
+.cabinet-top{
+ width:100%;margin:0 auto -2px;position:relative;z-index:3;
+ filter:drop-shadow(0 12px 22px #000c);
+}
+.cabinet-top img{display:block;width:100%;height:auto}
+.ver{margin:0!important;padding:6px 0 7px;background:#080604;color:#e8c66f!important;border-left:2px solid #8d6425;border-right:2px solid #8d6425}
+.cab{
+ border-radius:0 0 18px 18px!important;border:2px solid #8d6425!important;border-top:0!important;
+ background:linear-gradient(90deg,#050505,#17100a 10%,#090806 50%,#17100a 90%,#050505)!important;
+ box-shadow:0 18px 40px #000d,inset 0 0 35px #d49a2520!important;padding-top:12px!important
+}
+.window{
+ border:7px solid #b7842c!important;
+ outline:3px solid #2a1604;
+ box-shadow:0 0 0 2px #e5bb5c,0 12px 30px #000d,inset 0 0 22px #000!important;
+ background:#050505!important
+}
+.lower-shell{position:relative;margin:12px -10px -14px;min-height:300px;overflow:hidden}
+.lower-shell-art{
+ position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;
+ opacity:.72;filter:brightness(.58) saturate(1.15);z-index:0
+}
+.modern-controls{
+ position:relative!important;z-index:1!important;margin:0!important;min-height:300px;
+ background:linear-gradient(180deg,#120b04a8,#050403e8 74%,#020202f2)!important;
+ border:0!important;border-radius:0!important;box-shadow:inset 0 1px #ffd87855!important;
+ padding:34px 28px 18px!important
+}
+.control-grid{max-width:820px!important}
+.maxbet-btn{box-shadow:inset 0 0 0 4px #3f2600,0 7px 0 #383b3e,0 10px 20px #000b,0 0 18px #ffcf4655!important}
+.modern-stop{box-shadow:inset 0 0 0 4px #5a0502,0 8px 0 #3b3e41,0 12px 22px #000d,0 0 12px #ff301f55!important}
+.frog-corner img{width:125px!important}
+.status{background:#030303cc!important;border:1px solid #a5772f!important;border-radius:9px;padding:8px;margin-top:10px!important}
+.subcontrols{margin-top:9px!important}
+@media(max-width:700px){
+ .machine{padding-left:0;padding-right:0}
+ .cab{border-left-width:1px!important;border-right-width:1px!important}
+ .lower-shell{margin-left:0;margin-right:0;min-height:255px}
+ .modern-controls{min-height:255px;padding:24px 8px 12px!important}
+ .frog-corner img{width:76px!important}
+}
+
+
+.volume-control{
+ display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #745a2a;
+ border-radius:10px;background:#090704cc;box-shadow:inset 0 0 10px #000a
+}
+.volume-btn{
+ width:30px;height:30px;padding:0!important;border-radius:50%!important;border:1px solid #8e7548!important;
+ background:linear-gradient(#3b3022,#171109)!important;color:#ffe6a1!important;font-size:18px!important;font-weight:900!important
+}
+.volume-icon{font-size:16px;filter:drop-shadow(0 0 4px #fff3)}
+.volume-slider{
+ width:125px;accent-color:#d6a63c;cursor:pointer
+}
+.volume-value{
+ min-width:38px;color:#ffe08a;font-size:11px;font-weight:900;text-align:right
+}
+@media(max-width:700px){
+ .volume-slider{width:82px}
+ .volume-control{gap:4px;padding:5px 6px}
+ .volume-value{min-width:34px}
+}
+
+
+/* Ver.0.9 real-slot engine */
+.cab.flash-red{animation:cabRed .34s ease-out 1}
+.cab.flash-red3{animation:cabRed3 .78s linear 1}
+.cab.flash-green{animation:cabGreen .48s ease-out 1}
+.cab.flash-chance{animation:cabChance .55s ease-out 1}
+.cab.rainbow-hold{animation:cabRainbow .9s linear infinite}
+.cab.bonus-active{box-shadow:0 0 34px #ffd45d88,inset 0 0 28px #ffcf5230!important}
+@keyframes cabRed{
+ 0%,100%{filter:none}45%{filter:drop-shadow(0 0 28px #ff1d16) brightness(1.28)}
+}
+@keyframes cabRed3{
+ 0%,18%,36%,54%,72%,100%{filter:none}
+ 9%,27%,45%,63%,81%{filter:drop-shadow(0 0 30px #ff120c) brightness(1.35)}
+}
+@keyframes cabGreen{
+ 0%,100%{filter:none}45%{filter:drop-shadow(0 0 32px #20ff63) brightness(1.28)}
+}
+@keyframes cabChance{
+ 0%,100%{filter:none}45%{filter:drop-shadow(0 0 30px #a84cff) brightness(1.3)}
+}
+@keyframes cabRainbow{
+ 0%{box-shadow:0 0 34px #ff334f,inset 0 0 24px #ff334f22}
+ 17%{box-shadow:0 0 34px #ff9a27,inset 0 0 24px #ff9a2722}
+ 34%{box-shadow:0 0 34px #fff13a,inset 0 0 24px #fff13a22}
+ 51%{box-shadow:0 0 34px #38ff76,inset 0 0 24px #38ff7622}
+ 68%{box-shadow:0 0 34px #31c9ff,inset 0 0 24px #31c9ff22}
+ 85%{box-shadow:0 0 34px #b54cff,inset 0 0 24px #b54cff22}
+ 100%{box-shadow:0 0 34px #ff334f,inset 0 0 24px #ff334f22}
+}
+.wait-badge{
+ display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;
+ background:#50120d;color:#ffd8a0;border:1px solid #d88131;font-size:10px;font-weight:1000;
+ letter-spacing:.08em;vertical-align:middle
+}
+
+
+</style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images/cabinet/cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.3</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.3</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
 <div class="lower-shell">
-  <img class="lower-shell-art" src="images/cabinet/cabinet_bottom.png" alt="">
+  <img class="lower-shell-art" src="images_cabinet_cabinet_bottom.png" alt="">
   <div class="controls modern-controls">
-  <div class="frog-corner frog-left"><img src="images/frogs/frog_03.png" alt=""></div>
-  <div class="frog-corner frog-right"><img src="images/frogs/frog_04.png" alt=""></div>
+  <div class="frog-corner frog-left"><img src="images_frogs_frog_03.png" alt=""></div>
+  <div class="frog-corner frog-right"><img src="images_frogs_frog_04.png" alt=""></div>
 
   <div class="control-grid">
     <div class="left-control">
@@ -46,30 +260,714 @@
       </div>
     </div>
   </div>
-  <div class="note">Ver.0.9.3：21コマ×3リール配列を正式化。非成立役の入賞形を回避する停止制御を追加。</div>
+  <div class="note">Ver.0.9.3 FIX：GitHub直置き対応。左リール10・11を入れ替え。</div>
 </div>
 </div></section></main>
 
 <div id="paytableModal" class="paytable-modal" aria-hidden="true">
   <div class="paytable-wrap">
     <button id="paytableClose" class="paytable-close" aria-label="閉じる">×</button>
-    <img src="images/ui/paytable.png" class="paytable-img" alt="万枚ファンタジア A-TYPE 成立役一覧">
+    <img src="images_ui_paytable.png" class="paytable-img" alt="万枚ファンタジア A-TYPE 成立役一覧">
   </div>
 </div>
 
 
-<audio id="bgmBig1" src="audio/bgm/bgm_01.mp3" preload="auto"></audio>
-<audio id="bgmBig2" src="audio/bgm/bgm_04.mp3" preload="auto"></audio>
-<audio id="bgmBig3" src="audio/bgm/bgm_03.mp3" preload="auto"></audio>
-<audio id="bgmBar" src="audio/bgm/bgm_02.mp3" preload="auto"></audio>
+<audio id="bgmBig1" src="audio_bgm_bgm_01.mp3" preload="auto"></audio>
+<audio id="bgmBig2" src="audio_bgm_bgm_04.mp3" preload="auto"></audio>
+<audio id="bgmBig3" src="audio_bgm_bgm_03.mp3" preload="auto"></audio>
+<audio id="bgmBar" src="audio_bgm_bgm_02.mp3" preload="auto"></audio>
 
 
-<audio id="seLeverFile" preload="auto" src="audio/se/lever.mp3"></audio>
-<audio id="seStopFile" preload="auto" src="audio/se/stop.mp3"></audio>
-<audio id="seBellFile" preload="auto" src="audio/se/bell.mp3"></audio>
-<audio id="seReplayFile" preload="auto" src="audio/se/replay.mp3"></audio>
-<audio id="seCherryFile" preload="auto" src="audio/se/cherry.mp3"></audio>
-<audio id="seTenpaiFile" preload="auto" src="audio/se/bonus_tenpai.mp3"></audio>
+<audio id="seLeverFile" preload="auto" src="audio_se_lever.mp3"></audio>
+<audio id="seStopFile" preload="auto" src="audio_se_stop.mp3"></audio>
+<audio id="seBellFile" preload="auto" src="audio_se_bell.mp3"></audio>
+<audio id="seReplayFile" preload="auto" src="audio_se_replay.mp3"></audio>
+<audio id="seCherryFile" preload="auto" src="audio_se_cherry.mp3"></audio>
+<audio id="seTenpaiFile" preload="auto" src="audio_se_bonus_tenpai.mp3"></audio>
 
-<script src="js/game.js"></script>
+<script>
+
+const S={seven:"images_symbols_seven.png",bar:"images_symbols_bar.png",bell:"images_symbols_bell.png",cherry:"images_symbols_cherry.png",watermelon:"images_symbols_watermelon.png",replay:"images_symbols_replay.png"};
+const R={
+ left:[
+   "seven", "replay", "bell", "watermelon", "replay", "cherry", "bell", "replay", "bar", "watermelon", "bell", "replay", "bell", "cherry", "replay", "seven", "bell", "replay", "watermelon", "bell", "replay"
+ ],
+ center:[
+   "replay","seven","watermelon","bell","replay","bar","bell",
+   "replay","watermelon","bell","replay","seven","bell","replay",
+   "watermelon","bar","bell","replay","bell","watermelon","replay"
+ ],
+ right:[
+   "watermelon","replay","seven","bell","replay","watermelon","bell",
+   "bar","replay","bell","watermelon","replay","bell","seven",
+   "replay","watermelon","bell","bar","replay","bell","replay"
+ ]
+};
+const E=id=>document.getElementById(id),H=()=>innerWidth<=650?80:110;
+
+window.addEventListener("error",e=>{
+ const b=document.getElementById("runtimeError");
+ if(b){b.style.display="block";b.textContent=`ERROR: ${e.message} (${e.lineno||"?"})`;}
+});
+
+
+let soundOn=true,audioCtx=null,currentBgm=null,bigBgmIndex=0,masterVolume=.65;
+let reelMotorNodes=null;
+
+function safeAudioContext(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return null;
+    if(!audioCtx)audioCtx=new AC();
+    if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});
+    return audioCtx;
+  }catch(e){
+    console.warn("AudioContext unavailable:",e);
+    return null;
+  }
+}
+function tone(freq,d=.06,vol=.035,type="square",delay=0){
+  if(!soundOn)return;
+  try{
+    const c=safeAudioContext();
+    if(!c)return;
+    const o=c.createOscillator(),g=c.createGain(),s=c.currentTime+delay;
+    o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(Math.max(.0001,vol*masterVolume),s);
+    g.gain.exponentialRampToValueAtTime(.0001,s+d);
+    o.connect(g);g.connect(c.destination);o.start(s);o.stop(s+d);
+  }catch(e){console.warn("SE skipped:",e);}
+}
+
+function noiseBurst(d=.06,vol=.025,filterFreq=1200){
+ if(!soundOn)return;
+ try{
+   const c=safeAudioContext(); if(!c)return;
+   const len=Math.max(1,Math.floor(c.sampleRate*d));
+   const buf=c.createBuffer(1,len,c.sampleRate);
+   const data=buf.getChannelData(0);
+   for(let i=0;i<len;i++)data[i]=(Math.random()*2-1)*(1-i/len);
+   const src=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+   src.buffer=buf;f.type="bandpass";f.frequency.value=filterFreq;f.Q.value=.8;
+   g.gain.value=vol*masterVolume;
+   src.connect(f);f.connect(g);g.connect(c.destination);src.start();
+ }catch(e){console.warn("noise SE skipped:",e);}
+}
+function startReelMotor(){
+ if(!soundOn || reelMotorNodes)return;
+ try{
+   const c=safeAudioContext(); if(!c)return;
+   const osc=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter();
+   osc.type="sawtooth";osc.frequency.value=92;
+   f.type="lowpass";f.frequency.value=520;
+   g.gain.value=.016*masterVolume;
+   osc.connect(f);f.connect(g);g.connect(c.destination);osc.start();
+   reelMotorNodes={osc,g,f};
+ }catch(e){console.warn("motor SE skipped:",e);}
+}
+function stopReelMotor(){
+ try{
+   if(reelMotorNodes){
+     const c=safeAudioContext();
+     reelMotorNodes.g.gain.setTargetAtTime(.0001,c.currentTime,.025);
+     setTimeout(()=>{try{reelMotorNodes.osc.stop()}catch(e){} reelMotorNodes=null;},90);
+   }
+ }catch(e){reelMotorNodes=null;}
+}
+
+function playFileSE(id,rate=1,vol=1){
+ if(!soundOn)return;
+ try{
+   const base=E(id); if(!base)return;
+   const a=base.cloneNode(true);
+   a.volume=Math.max(0,Math.min(1,masterVolume*vol));
+   a.playbackRate=rate;
+   const pr=a.play();
+   if(pr&&pr.catch)pr.catch(()=>{});
+ }catch(e){console.warn("file SE skipped:",e);}
+}
+const SE={
+ bet(){
+   tone(190,.045,.075,"square");
+   tone(285,.05,.055,"square",.035);
+   noiseBurst(.045,.035,1700);
+ },
+ lever(){
+   playFileSE("seLeverFile",1,1);
+ },
+ stop(n){
+   playFileSE("seStopFile",1+(n-1)*.018,1);
+ },
+ bell(){
+   playFileSE("seBellFile",1,1);
+ },
+ replay(){
+   playFileSE("seReplayFile",1,1);
+ },
+ rare(){
+   tone(250,.065,.07,"sawtooth");
+   tone(700,.08,.055,"square",.06);
+   noiseBurst(.06,.03,1400);
+ },
+ chance(){
+   [320,520,760,1040].forEach((f,i)=>tone(f,.075,.055,"square",i*.045));
+ },
+ bonus(){
+   [392,523,659,784].forEach((f,i)=>tone(f,.13,.07,"triangle",i*.08));
+ }
+};
+function stopBgm(){
+  try{
+    if(currentBgm){currentBgm.pause();currentBgm.currentTime=0;}
+  }catch(e){console.warn("BGM stop skipped:",e);}
+  currentBgm=null;
+}
+function playBgm(id){
+  if(!soundOn)return;
+  try{
+    stopBgm();
+    const a=E(id);
+    if(!a)return;
+    a.volume=masterVolume;a.loop=true;a.currentTime=0;
+    const promise=a.play();
+    if(promise&&typeof promise.catch==="function"){
+      promise.catch(e=>console.warn("BGM play blocked:",e));
+    }
+    currentBgm=a;
+  }catch(e){
+    console.warn("BGM skipped:",e);
+    currentBgm=null;
+  }
+}
+function startBonusBgm(type){
+  try{
+    if(type==="REG"){playBgm("bgmBar");return;}
+    const ids=["bgmBig1","bgmBig2","bgmBig3"];
+    playBgm(ids[bigBgmIndex%ids.length]);
+    bigBgmIndex++;
+  }catch(e){console.warn("Bonus BGM skipped:",e);}
+}
+
+let credit=50,bet=0,pay=0,game=0,spinning=false,waiting=false,order=0,currentRole="MISS";
+let off={left:0,center:0,right:0},timer={},stopped={left:true,center:true,right:true};
+let stopHit={left:false,center:false,right:false};
+ missPlan=currentRole==="MISS"?chooseLegalMissCenters():null;
+let missPlan=null;
+let replayReady=false;
+let bonusStock=null;      // BIG / REG: internal bonus carried until aligned
+let bonusMode=null;       // BIG / REG currently paying out
+let bonusTotal=0;
+let bonusTarget=0;
+let lastSpinStart=0;
+let refillCount=0;
+
+const SETTING=6;
+const BET_PER_GAME=3;
+const CREDIT_MAX=50;
+const ASSIST_COMA=5;
+const REEL_WAIT_MS=4100;
+
+const P={
+  BIG:1/220,
+  REG:1/260,
+  WEAK_CHERRY:1/55,
+  STRONG_CHERRY:1/320,
+  WATERMELON:1/75,
+  CHANCE:1/140,
+  BELL:1/6.2,
+  REPLAY:1/7.3
+};
+const BONUS_RATE={
+  WEAK_CHERRY:.03,
+  STRONG_CHERRY:.45,
+  WATERMELON:.08,
+  CHANCE:.22
+};
+
+function drawRole(){
+ if(bonusStock) return bonusStock==="BIG"?"BIG_ALIGN":"REG_ALIGN";
+ if(bonusMode) return Math.random()<.76?"BELL":(Math.random()<.55?"REPLAY":"MISS");
+
+ const r=Math.random();
+ let c=0;
+ const roles=[
+   ["STRONG_CHERRY",P.STRONG_CHERRY],
+   ["CHANCE",P.CHANCE],
+   ["WATERMELON",P.WATERMELON],
+   ["WEAK_CHERRY",P.WEAK_CHERRY],
+   ["BELL",P.BELL],
+   ["REPLAY",P.REPLAY]
+ ];
+ for(const [role,prob] of roles){
+   c+=prob;
+   if(r<c){
+     if(BONUS_RATE[role] && Math.random()<BONUS_RATE[role]){
+       bonusStock=Math.random()<.56?"BIG":"REG";
+     }
+     return role;
+   }
+ }
+ if(Math.random()<P.BIG){bonusStock="BIG";return "MISS";}
+ if(Math.random()<P.REG){bonusStock="REG";return "MISS";}
+ return "MISS";
+}
+
+function build(k){
+ const strip=E(k+"Strip"),seq=[...R[k],...R[k],...R[k]];
+ strip.innerHTML=seq.map(x=>`<div class="symbol symbol-${x}"><img src="${S[x]}" alt="${x}"></div>`).join("");
+ off[k]=R[k].length*H();
+ strip.style.transform=`translateY(-${off[k]}px)`;
+}
+["left","center","right"].forEach(build);
+
+function sync(){
+ E("credit").textContent=credit;
+ E("bet").textContent=bet;
+ E("pay").textContent=pay;
+ E("game").textContent=game;
+
+ const needBet=!replayReady && bet!==BET_PER_GAME;
+ E("betBtn").disabled=spinning||waiting||!needBet;
+ E("leverBtn").disabled=spinning||waiting||bet!==BET_PER_GAME;
+
+ if(replayReady && !spinning && !waiting && bet!==BET_PER_GAME){
+   bet=BET_PER_GAME;
+   E("bet").textContent=bet;
+   E("leverBtn").disabled=false;
+ }
+}
+function ensureCredit(){
+ if(credit>=BET_PER_GAME)return false;
+ credit=CREDIT_MAX;
+ refillCount++;
+ E("status").textContent=`CREDIT自動補充 → ${CREDIT_MAX}枚`;
+ return true;
+}
+function awardCoins(n){
+ const room=Math.max(0,CREDIT_MAX-credit);
+ const toCredit=Math.min(room,n);
+ credit+=toCredit;
+ const overflow=n-toCredit;
+ if(overflow>0)pay+=overflow;
+ return {toCredit,overflow};
+}
+function roleSymbol(role){
+ return {
+  BIG_ALIGN:"seven",REG_ALIGN:"bar",
+  BELL:"bell",REPLAY:"replay",WATERMELON:"watermelon",
+  WEAK_CHERRY:"cherry",STRONG_CHERRY:"cherry"
+ }[role]||null;
+}
+function norm(v,n){return ((v%n)+n)%n}
+
+function visibleTriplet(k,centerIdx){
+ const arr=R[k],n=arr.length;
+ return {
+   top:arr[norm(centerIdx-1,n)],
+   middle:arr[norm(centerIdx,n)],
+   bottom:arr[norm(centerIdx+1,n)]
+ };
+}
+function isWinningSymbolTriplet(a,b,c){
+ return (a==="bell"&&b==="bell"&&c==="bell") ||
+        (a==="replay"&&b==="replay"&&c==="replay") ||
+        (a==="watermelon"&&b==="watermelon"&&c==="watermelon") ||
+        (a==="seven"&&b==="seven"&&c==="seven") ||
+        (a==="bar"&&b==="bar"&&c==="bar");
+}
+function accidentalHit(leftIdx,centerIdx,rightIdx){
+ const L=visibleTriplet("left",leftIdx),C=visibleTriplet("center",centerIdx),Rr=visibleTriplet("right",rightIdx);
+
+ // Standard 5 lines: top, middle, bottom, diagonal down, diagonal up.
+ const lines=[
+   [L.top,C.top,Rr.top],
+   [L.middle,C.middle,Rr.middle],
+   [L.bottom,C.bottom,Rr.bottom],
+   [L.top,C.middle,Rr.bottom],
+   [L.bottom,C.middle,Rr.top]
+ ];
+ if(lines.some(x=>isWinningSymbolTriplet(...x)))return true;
+
+ // Cherry is treated as a left-reel pay symbol. Avoid showing cherry on active left positions on MISS.
+ if(L.top==="cherry"||L.middle==="cherry"||L.bottom==="cherry")return true;
+ return false;
+}
+function chooseLegalMissCenters(){
+ const n=R.left.length;
+ // Prefer centers close to current stop position so MISS still feels like a natural stop.
+ const base={
+   left:pressedCenterIndex("left"),
+   center:pressedCenterIndex("center"),
+   right:pressedCenterIndex("right")
+ };
+ let best=null,bestCost=1e9;
+ for(let dl=-5;dl<=5;dl++){
+   const li=norm(base.left+dl,n);
+   for(let dc=-5;dc<=5;dc++){
+     const ci=norm(base.center+dc,n);
+     for(let dr=-5;dr<=5;dr++){
+       const ri=norm(base.right+dr,n);
+       if(accidentalHit(li,ci,ri))continue;
+       const cost=Math.abs(dl)+Math.abs(dc)+Math.abs(dr);
+       if(cost<bestCost){best={left:li,center:ci,right:ri};bestCost=cost}
+     }
+   }
+ }
+ return best||base;
+}
+
+function pressedCenterIndex(k){
+ const n=R[k].length,h=H();
+ return norm(Math.round(off[k]/h)-n+1,n);
+}
+function findAssistIndex(k,symbol,maxSlide=ASSIST_COMA){
+ if(!symbol)return null;
+ const arr=R[k],n=arr.length,press=pressedCenterIndex(k);
+ // Reel visual moves toward decreasing strip indexes in this implementation.
+ for(let slide=0;slide<=maxSlide;slide++){
+   const idx=norm(press-slide,n);
+   if(arr[idx]===symbol)return {idx,slide,hit:true};
+ }
+ return {idx:press,slide:0,hit:false};
+}
+function targetFor(k,role){
+ if(role==="WEAK_CHERRY"){
+   if(k!=="left")return null;
+   return "cherry";
+ }
+ if(role==="STRONG_CHERRY"){
+   if(k==="left")return "cherry";
+   if(k==="right")return "seven";
+   return null;
+ }
+ if(role==="CHANCE"){
+   return {left:"watermelon",center:"bell",right:"seven"}[k];
+ }
+ return roleSymbol(role);
+}
+function setCenter(k,idx,slide=0){
+ const h=H(),n=R[k].length;
+ if(idx==null)idx=pressedCenterIndex(k);
+ off[k]=(n+idx-1)*h;
+ const strip=E(k+"Strip");
+ const dur=Math.min(.22,.075+slide*.025);
+ strip.style.transition=`transform ${dur}s cubic-bezier(.12,.78,.22,1)`;
+ strip.style.transform=`translateY(-${off[k]}px)`;
+ setTimeout(()=>strip.style.transition="",Math.ceil(dur*1000)+35);
+}
+function flashCabinet(kind){
+ const cab=document.querySelector(".cab");
+ if(!cab)return;
+ const cls={
+  WEAK_CHERRY:"flash-red",
+  STRONG_CHERRY:"flash-red3",
+  WATERMELON:"flash-green",
+  CHANCE:"flash-chance"
+ }[kind];
+ if(!cls)return;
+ cab.classList.remove(cls);
+ void cab.offsetWidth;
+ cab.classList.add(cls);
+ setTimeout(()=>cab.classList.remove(cls),kind==="STRONG_CHERRY"?850:620);
+}
+function updateBonusGlow(){
+ const cab=document.querySelector(".cab");
+ if(!cab)return;
+ cab.classList.toggle("rainbow-hold",!!bonusStock && !bonusMode);
+ cab.classList.toggle("bonus-active",!!bonusMode);
+ if(bonusStock)E("manLamp").classList.add("on");
+ else if(!bonusMode)E("manLamp").classList.remove("on");
+}
+function allBonusSymbolsCaptured(){
+ return stopHit.left && stopHit.center && stopHit.right;
+}
+function roleCaptured(){
+ if(currentRole==="WEAK_CHERRY")return stopHit.left;
+ if(currentRole==="STRONG_CHERRY")return stopHit.left; // right 7 is a strong-stop accent, not payout requirement
+ if(currentRole==="WATERMELON"||currentRole==="BELL"||currentRole==="REPLAY")return stopHit.left&&stopHit.center&&stopHit.right;
+ if(currentRole==="CHANCE")return true; // chance is an internal zero-payout role
+ return true;
+}
+
+E("betBtn").onclick=()=>{
+ if(spinning||waiting||bet===BET_PER_GAME)return;
+ ensureCredit();
+ credit-=BET_PER_GAME;
+ bet=BET_PER_GAME;
+ replayReady=false;
+ try{SE.bet();}catch(e){console.warn("audio ignored",e);}
+ E("status").textContent=bonusStock?`${bonusStock==="BIG"?"7":"BAR"}を狙え！（5コマアシスト）`:"3枚掛け完了 / レバーON";
+ sync();
+};
+
+function start(k,speed){
+ stopped[k]=false;
+ const strip=E(k+"Strip"),total=R[k].length*H();
+ timer[k]=setInterval(()=>{
+   off[k]-=speed;
+   if(off[k]<=total*.15)off[k]+=total;
+   strip.style.transform=`translateY(-${off[k]}px)`;
+ },16);
+}
+function actuallyStartSpin(){
+ waiting=false;
+ spinning=true;
+ game++;
+ order=0;
+ stopHit={left:false,center:false,right:false};
+ lastSpinStart=Date.now();
+
+ if(bonusStock){
+   E("status").textContent=`${bonusStock==="BIG"?"7":"BAR"}を狙え！ 最大5コマ引込`;
+ }else if(bonusMode){
+   E("status").textContent=`${bonusMode} BONUS ${bonusTotal}/${bonusTarget}枚`;
+ }else{
+   E("status").textContent="回転中… STOP!";
+ }
+ updateBonusGlow();
+ startReelMotor();
+ start("left",32);start("center",35);start("right",38);
+ ["stopL","stopC","stopR"].forEach(id=>{E(id).disabled=false;E(id).classList.add("ready")});
+ sync();
+}
+E("leverBtn").onclick=()=>{
+ if(spinning||waiting||bet!==BET_PER_GAME)return;
+
+ // Internal role is decided at LEVER ON, even if the reel wait is still active.
+ currentRole=drawRole();
+ try{SE.lever();}catch(e){console.warn("audio ignored",e);}
+ updateBonusGlow();
+
+ const elapsed=Date.now()-lastSpinStart;
+ const wait=Math.max(0,REEL_WAIT_MS-elapsed);
+ if(wait>35 && lastSpinStart>0){
+   waiting=true;
+   E("status").innerHTML=`WAIT <span class="wait-badge">${(wait/1000).toFixed(1)}s</span>`;
+   sync();
+   setTimeout(actuallyStartSpin,wait);
+ }else{
+   actuallyStartSpin();
+ }
+};
+
+function stop(k,b){
+ if(!spinning||stopped[k])return;
+ clearInterval(timer[k]);
+ stopped[k]=true;
+
+ const target=targetFor(k,currentRole);
+ let idx=pressedCenterIndex(k),slide=0,hit=false;
+ if(currentRole==="MISS" && missPlan){
+   idx=missPlan[k];
+   slide=Math.min(ASSIST_COMA,Math.abs(norm(idx-pressedCenterIndex(k),R[k].length)));
+   hit=true;
+ }else if(target){
+   const assist=findAssistIndex(k,target,ASSIST_COMA);
+   idx=assist.idx;slide=assist.slide;hit=assist.hit;
+ }
+ stopHit[k]=target?hit:true;
+ setCenter(k,idx,slide);
+
+ b.disabled=true;b.classList.remove("ready");
+ order++;
+ try{SE.stop(order);}catch(e){console.warn("audio ignored",e);}
+ if(order===2 && bonusStock && !bonusMode){
+   const stoppedKeys=["left","center","right"].filter(x=>stopped[x]);
+   if(stoppedKeys.length===2 && stoppedKeys.every(x=>stopHit[x])){
+     setTimeout(()=>playFileSE("seTenpaiFile",1,1),70);
+   }
+ }
+ if(order===3){
+   stopReelMotor();
+   setTimeout(finish,150);
+ }
+}
+
+function startBonus(type){
+ bonusStock=null;
+ bonusMode=type;
+ bonusTotal=0;
+ bonusTarget=type==="BIG"?250:100;
+ replayReady=false;
+ updateBonusGlow();
+ try{SE.bonus();}catch(e){console.warn("audio ignored",e);}
+ startBonusBgm(type);
+ return `${type} BONUS START! 目標 ${bonusTarget}枚`;
+}
+function endBonus(){
+ const type=bonusMode,total=bonusTotal;
+ bonusMode=null;bonusTotal=0;bonusTarget=0;
+ stopBgm();updateBonusGlow();
+ return `${type}終了 TOTAL ${total}枚`;
+}
+
+function finish(){
+ spinning=false;
+ let msg="ハズレ";
+ const captured=roleCaptured();
+
+ // BONUS is never started by internal hit alone. All 3 bonus symbols must be aligned.
+ if(currentRole==="BIG_ALIGN"||currentRole==="REG_ALIGN"){
+   if(allBonusSymbolsCaptured()){
+     msg=startBonus(bonusStock);
+   }else{
+     msg=`${bonusStock}成立中 / ${bonusStock==="BIG"?"7":"BAR"}を狙え（取りこぼし・持越し）`;
+     updateBonusGlow();
+   }
+ }
+ else if(currentRole==="BELL"){
+   if(captured){
+     const coins=bonusMode?15:8;
+     awardCoins(coins);
+     if(bonusMode)bonusTotal+=coins;
+     msg=`ベル +${coins}枚`;
+     try{SE.bell();}catch(e){}
+   }else msg="ベル成立（取りこぼし）";
+ }
+ else if(currentRole==="REPLAY"){
+   if(captured){
+     replayReady=true;
+     msg="REPLAY / 次ゲーム3枚掛け不要";
+     try{SE.replay();}catch(e){}
+   }else{
+     // Safety fallback: internal replay still grants replay even on an impossible visual miss.
+     replayReady=true;
+     msg="REPLAY成立 / 再遊技";
+   }
+ }
+ else if(currentRole==="WATERMELON"){
+   flashCabinet("WATERMELON");
+   if(captured){awardCoins(8);msg="スイカ +8枚";try{SE.rare();}catch(e){}}
+   else msg="スイカ成立（取りこぼし）";
+ }
+ else if(currentRole==="WEAK_CHERRY"){
+   flashCabinet("WEAK_CHERRY");
+   if(captured){awardCoins(1);msg="弱チェリー +1枚";playFileSE("seCherryFile",1,1)}
+   else msg="弱チェリー成立（取りこぼし）";
+ }
+ else if(currentRole==="STRONG_CHERRY"){
+   flashCabinet("STRONG_CHERRY");
+   if(captured){awardCoins(1);msg="強チェリー +1枚";playFileSE("seCherryFile",1.05,1)}
+   else msg="強チェリー成立（取りこぼし）";
+ }
+ else if(currentRole==="CHANCE"){
+   flashCabinet("CHANCE");
+   msg="チャンス目！";
+   try{SE.chance();}catch(e){}
+ }
+
+ // If this game newly stocked a bonus, keep rainbow until 7/BAR is actually aligned.
+ if(bonusStock && !bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
+   updateBonusGlow();
+   msg+=` / ${bonusStock}内部成立！ 次G ${bonusStock==="BIG"?"7":"BAR"}を狙え`;
+ }
+
+ if(bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
+   if(bonusTotal>=bonusTarget){
+     msg+=` / ${endBonus()}`;
+   }else{
+     msg+=` / ${bonusMode} ${bonusTotal}/${bonusTarget}枚`;
+   }
+ }
+
+ // 3-bet fixed: only replay carries the bet forward for free.
+ if(replayReady){
+   bet=BET_PER_GAME;
+ }else{
+   bet=0;
+ }
+ if(credit<BET_PER_GAME && !replayReady){
+   ensureCredit();
+   msg+=` / CREDIT自動補充`;
+ }
+ E("status").textContent=msg;
+ sync();
+}
+
+E("stopL").onclick=()=>stop("left",E("stopL"));
+E("stopC").onclick=()=>stop("center",E("stopC"));
+E("stopR").onclick=()=>stop("right",E("stopR"));
+
+E("paytableBtn").onclick=()=>{
+  E("paytableModal").classList.add("open");
+  E("paytableModal").setAttribute("aria-hidden","false");
+};
+E("paytableClose").onclick=closePaytable;
+E("paytableModal").onclick=e=>{if(e.target===E("paytableModal"))closePaytable()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closePaytable()});
+function closePaytable(){
+  E("paytableModal").classList.remove("open");
+  E("paytableModal").setAttribute("aria-hidden","true");
+}
+
+
+E("soundBtn").onclick=()=>{
+ soundOn=!soundOn;
+ E("soundBtn").textContent=soundOn?"SOUND ON":"SOUND OFF";
+ E("soundBtn").classList.toggle("off",!soundOn);
+ if(!soundOn){stopBgm();stopReelMotor();}
+};
+
+
+let autoMode=false,autoTimer=null;
+function autoSchedule(ms=250){
+ clearTimeout(autoTimer);
+ if(autoMode)autoTimer=setTimeout(autoStep,ms);
+}
+function autoStep(){
+ if(!autoMode)return;
+ try{
+   if(!E("betBtn").disabled){E("betBtn").click();return autoSchedule(180);}
+   if(!E("leverBtn").disabled){E("leverBtn").click();return autoSchedule(500);}
+   if(!E("stopL").disabled){E("stopL").click();return autoSchedule(220);}
+   if(!E("stopC").disabled){E("stopC").click();return autoSchedule(220);}
+   if(!E("stopR").disabled){E("stopR").click();return autoSchedule(520);}
+ }catch(e){console.warn("AUTO skipped:",e);}
+ autoSchedule(220);
+}
+E("autoBtn").onclick=()=>{
+ autoMode=!autoMode;
+ E("autoBtn").textContent=autoMode?"AUTO ON":"AUTO OFF";
+ E("autoBtn").classList.toggle("on",autoMode);
+ if(autoMode)autoStep(); else clearTimeout(autoTimer);
+};
+
+
+function applyVolume(v){
+ masterVolume=Math.max(0,Math.min(1,v));
+ const pct=Math.round(masterVolume*100);
+ const slider=E("volumeSlider"),label=E("volumeValue");
+ if(slider)slider.value=pct;
+ if(label)label.textContent=pct+"%";
+ ["bgmBig1","bgmBig2","bgmBig3","bgmBar","seLeverFile","seStopFile","seBellFile","seReplayFile","seCherryFile","seTenpaiFile"].forEach(id=>{
+   const a=E(id); if(a)a.volume=masterVolume;
+ });
+ if(reelMotorNodes && reelMotorNodes.g){
+   reelMotorNodes.g.gain.value=.016*masterVolume;
+ }
+ if(masterVolume===0){
+   soundOn=false;
+   E("soundBtn").textContent="SOUND OFF";
+   E("soundBtn").classList.add("off");
+ }else if(!soundOn){
+   soundOn=true;
+   E("soundBtn").textContent="SOUND ON";
+   E("soundBtn").classList.remove("off");
+ }
+}
+E("volumeSlider").addEventListener("input",e=>applyVolume(+e.target.value/100));
+E("volumeDown").onclick=()=>applyVolume(masterVolume-.05);
+E("volumeUp").onclick=()=>applyVolume(masterVolume+.05);
+
+// SOUND ONに戻した時は現在の音量を維持
+const oldSoundToggle=E("soundBtn").onclick;
+E("soundBtn").onclick=()=>{
+ if(oldSoundToggle)oldSoundToggle();
+ if(soundOn && masterVolume===0)applyVolume(.25);
+};
+applyVolume(.65);
+
+sync();
+
+</script>
 </body></html>
