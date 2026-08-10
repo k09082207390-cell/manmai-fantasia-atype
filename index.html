@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.3</title>
+<title>万枚ファンタジア A-TYPE Ver.0.7</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
 .machine{width:min(850px,100%)}.logo{text-align:center}.logo img{width:min(520px,90vw);max-height:160px;object-fit:contain}.ver{text-align:center;color:#d6b46d;font-size:12px;font-weight:900;letter-spacing:.14em;margin-bottom:8px}
@@ -16,14 +16,51 @@
 .symbol-bell img,.symbol-cherry img,.symbol-watermelon img,.symbol-replay img{width:88%;height:88%;object-fit:contain}
 
 @media(max-width:650px){body{padding:5px}.cab{padding:8px}.reel{height:240px}.symbol{height:80px}.symbol img{max-height:66px}.hud{grid-template-columns:repeat(2,1fr)}}
+
+.paytable-btn{
+  margin-top:10px;padding:10px 20px;border:2px solid #d7a928;border-radius:10px;
+  background:linear-gradient(#4a0b0b,#170303);color:#ffd95a;font-weight:900;
+  letter-spacing:.08em;cursor:pointer;box-shadow:0 0 14px #d7a92855;
+}
+.paytable-modal{
+  display:none;position:fixed;inset:0;z-index:9999;background:#000e;
+  align-items:center;justify-content:center;padding:18px;box-sizing:border-box;
+}
+.paytable-modal.open{display:flex}
+.paytable-wrap{position:relative;max-width:1500px;width:100%;max-height:96vh;text-align:center}
+.paytable-img{max-width:100%;max-height:90vh;object-fit:contain;border:2px solid #d7a928;border-radius:10px}
+.paytable-close{
+  position:absolute;right:6px;top:6px;width:44px;height:44px;border-radius:50%;
+  border:2px solid #fff;background:#111d;color:#fff;font-size:28px;font-weight:bold;cursor:pointer
+}
+
+.soundRow{display:flex;justify-content:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.soundBtn{padding:8px 14px;border-radius:10px;border:1px solid #76562a;background:#17110d;color:#ffd76c;font-weight:900;cursor:pointer}
+.soundBtn.off{opacity:.45}
 </style></head><body><main class="machine">
-<div class="logo"><img src="logo.png"></div><div class="ver">A-TYPE Ver.0.3</div>
-<section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div>
+<div class="logo"><img src="logo.png"></div><div class="ver">A-TYPE Ver.0.7</div>
+<section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
 <div class="controls"><div class="topBtns"><button id="betBtn" class="btn bet">3 BET</button><button id="leverBtn" class="btn lever">LEVER ON</button></div>
 <div class="stops"><button id="stopL" class="stop" disabled>STOP 1</button><button id="stopC" class="stop" disabled>STOP 2</button><button id="stopR" class="stop" disabled>STOP 3</button></div>
-<div id="status" class="status">3 BETしてレバーON</div><div class="note">Ver.0.3：リール回転方向を実機寄りに修正 / 7・BARを大型化 / 回転速度と停止感を調整。</div></div></section></main>
+<div id="status" class="status">3 BETしてレバーON</div>
+<button id="paytableBtn" class="paytable-btn">成立役一覧 / 配当表</button>
+<div class="soundRow"><button id="soundBtn" class="soundBtn">SOUND ON</button></div><div class="note">Ver.0.7：BONUS BGM / BET・LEVER・STOP・小役SEを追加。</div></div></section></main>
+
+<div id="paytableModal" class="paytable-modal" aria-hidden="true">
+  <div class="paytable-wrap">
+    <button id="paytableClose" class="paytable-close" aria-label="閉じる">×</button>
+    <img src="paytable.png" class="paytable-img" alt="万枚ファンタジア A-TYPE 成立役一覧">
+  </div>
+</div>
+
+
+<audio id="bgmBig1" src="big_bonus_1.mp3" preload="auto"></audio>
+<audio id="bgmBig2" src="big_bonus_2.mp3" preload="auto"></audio>
+<audio id="bgmBig3" src="big_bonus_3.mp3" preload="auto"></audio>
+<audio id="bgmBar" src="bar_bonus.mp3" preload="auto"></audio>
+
 <script>
 const S={seven:"seven.png",bar:"bar.png",bell:"bell.png",cherry:"cherry.png",watermelon:"watermelon.png",replay:"replay.png"};
 const R={
@@ -31,25 +68,246 @@ const R={
  center:["replay","seven","watermelon","bell","replay","bar","bell","replay","bar","bell","replay","watermelon","bell","replay","bell","replay","watermelon","bar","bell","replay","bell"],
  right:["watermelon","seven","replay","bell","replay","watermelon","bell","replay","bar","replay","replay","bell","watermelon","replay","bell","replay","bell","bar","bell","replay","watermelon"]
 };
-const E=id=>document.getElementById(id), H=()=>innerWidth<=650?80:110;
+const E=id=>document.getElementById(id),H=()=>innerWidth<=650?80:110;
+
+let soundOn=true,audioCtx=null,currentBgm=null,bigBgmIndex=0;
+function ctx(){return audioCtx||(audioCtx=new(window.AudioContext||window.webkitAudioContext)())}
+function tone(freq,d=.06,vol=.035,type="square",delay=0){
+ if(!soundOn)return;
+ const c=ctx(),o=c.createOscillator(),g=c.createGain(),s=c.currentTime+delay;
+ o.type=type;o.frequency.value=f;g.gain.setValueAtTime(vol,s);g.gain.exponentialRampToValueAtTime(.0001,s+d);
+ o.connect(g);g.connect(c.destination);o.start(s);o.stop(s+d);
+}
+const SE={
+ bet(){tone(220,.05,.035,"square");tone(330,.05,.02,"square",.04)},
+ lever(){tone(115,.08,.05,"sawtooth");tone(170,.07,.035,"square",.05)},
+ stop(n){tone(480+n*70,.04,.04,"square")},
+ bell(){tone(660,.05,.03,"triangle");tone(880,.06,.025,"triangle",.05)},
+ replay(){tone(420,.05,.025,"triangle");tone(520,.06,.02,"triangle",.05)},
+ rare(){tone(260,.07,.05,"sawtooth");tone(780,.09,.035,"square",.07)},
+ chance(){[320,520,760].forEach((f,i)=>tone(f,.08,.04,"square",i*.05))},
+ bonus(){[392,523,659,784].forEach((f,i)=>tone(f,.13,.055,"triangle",i*.08))}
+};
+function stopBgm(){
+ if(currentBgm){currentBgm.pause();currentBgm.currentTime=0;currentBgm=null;}
+}
+function playBgm(id){
+ if(!soundOn)return;
+ stopBgm();
+ const a=E(id); if(!a)return;
+ a.volume=.65;a.currentTime=0;a.loop=true;
+ const p=a.play(); if(p&&p.catch)p.catch(()=>{});
+ currentBgm=a;
+}
+function startBonusBgm(type){
+ if(type==="REG"){playBgm("bgmBar");return}
+ const ids=["bgmBig1","bgmBig2","bgmBig3"];
+ const id=ids[bigBgmIndex%ids.length];
+ bigBgmIndex++;
+ playBgm(id);
+}
+
 let credit=50,bet=0,pay=0,game=0,spinning=false,order=0,currentRole="MISS";
 let off={left:0,center:0,right:0},timer={},stopped={left:true,center:true,right:true};
-const TABLE=[
- {role:"BIG",w:8},{role:"REG",w:8},{role:"CHERRY",w:80},{role:"WATERMELON",w:48},
- {role:"BELL",w:640},{role:"REPLAY",w:900},{role:"MISS",w:2412}
-];
-function drawRole(){let total=TABLE.reduce((a,b)=>a+b.w,0),r=Math.random()*total;for(const x of TABLE){r-=x.w;if(r<0)return x.role}return "MISS"}
-function build(k){const strip=E(k+"Strip"),seq=[...R[k],...R[k],...R[k]];strip.innerHTML=seq.map(x=>`<div class="symbol symbol-${x}"><img src="${S[x]}" alt="${x}"></div>`).join("");off[k]=R[k].length*H();strip.style.transform=`translateY(-${off[k]}px)`}
+let bonusStock=null;      // BIG or REG waiting to be aligned
+let bonusMode=null;       // BIG or REG currently being played
+let bonusLeft=0;
+let bonusTotal=0;
+
+const SETTING=6;
+const P={
+  BIG:1/220,
+  REG:1/260,
+  WEAK_CHERRY:1/55,
+  STRONG_CHERRY:1/320,
+  WATERMELON:1/75,
+  CHANCE:1/140,
+  BELL:1/6.2,
+  REPLAY:1/7.3
+};
+const BONUS_RATE={
+  WEAK_CHERRY:.03,
+  STRONG_CHERRY:.45,
+  WATERMELON:.08,
+  CHANCE:.22
+};
+
+function drawRole(){
+ if(bonusStock) return bonusStock==="BIG"?"BIG_ALIGN":"REG_ALIGN";
+ if(bonusMode) return Math.random()<.76?"BELL":(Math.random()<.55?"REPLAY":"MISS");
+
+ // One internal role per game. Rare roles are checked before common roles.
+ const r=Math.random();
+ let c=0;
+ const roles=[
+   ["STRONG_CHERRY",P.STRONG_CHERRY],
+   ["CHANCE",P.CHANCE],
+   ["WATERMELON",P.WATERMELON],
+   ["WEAK_CHERRY",P.WEAK_CHERRY],
+   ["BELL",P.BELL],
+   ["REPLAY",P.REPLAY]
+ ];
+ for(const [role,prob] of roles){
+   c+=prob;
+   if(r<c){
+     if(BONUS_RATE[role] && Math.random()<BONUS_RATE[role]){
+       bonusStock=Math.random()<.56?"BIG":"REG";
+     }
+     return role;
+   }
+ }
+ // Standalone bonus lottery.
+ if(Math.random()<P.BIG){bonusStock="BIG";return "MISS";}
+ if(Math.random()<P.REG){bonusStock="REG";return "MISS";}
+ return "MISS";
+}
+function build(k){
+ const strip=E(k+"Strip"),seq=[...R[k],...R[k],...R[k]];
+ strip.innerHTML=seq.map(x=>`<div class="symbol symbol-${x}"><img src="${S[x]}" alt="${x}"></div>`).join("");
+ off[k]=R[k].length*H();strip.style.transform=`translateY(-${off[k]}px)`;
+}
 ["left","center","right"].forEach(build);
-function sync(){E("credit").textContent=credit;E("bet").textContent=bet;E("pay").textContent=pay;E("game").textContent=game;E("betBtn").disabled=spinning||bet||credit<3;E("leverBtn").disabled=spinning||bet!==3}
-function roleSymbol(role){return {BIG:"seven",REG:"bar",BELL:"bell",REPLAY:"replay",WATERMELON:"watermelon",CHERRY:"cherry"}[role]||null}
-function findIndex(k,role){if(role==="CHERRY"&&k!=="left")return null;const sym=roleSymbol(role);if(!sym)return null;const c=[];R[k].forEach((x,i)=>{if(x===sym)c.push(i)});return c.length?c[Math.floor(Math.random()*c.length)]:null}
-function setCenter(k,idx){const h=H(),n=R[k].length;if(idx==null)idx=Math.floor(Math.random()*n);off[k]=(n+idx-1)*h;const strip=E(k+"Strip");strip.style.transition="transform .10s cubic-bezier(.2,.75,.35,1)";strip.style.transform=`translateY(-${off[k]}px)`;setTimeout(()=>strip.style.transition="",120)}
-E("betBtn").onclick=()=>{if(credit<3||bet)return;credit-=3;bet=3;pay=0;E("status").textContent="レバーON！";sync()}
-function start(k,speed){stopped[k]=false;const strip=E(k+"Strip"),total=R[k].length*H();timer[k]=setInterval(()=>{off[k]-=speed;if(off[k]<=total*0.15)off[k]+=total;strip.style.transform=`translateY(-${off[k]}px)`},16)}
-E("leverBtn").onclick=()=>{if(spinning||bet!==3)return;spinning=true;game++;order=0;pay=0;currentRole=drawRole();E("status").textContent="回転中… STOP!";E("manLamp").classList.remove("on");start("left",23);start("center",25);start("right",27);["stopL","stopC","stopR"].forEach(id=>{E(id).disabled=false;E(id).classList.add("ready")});sync()}
-function stop(k,b){if(!spinning||stopped[k])return;clearInterval(timer[k]);stopped[k]=true;setCenter(k,currentRole==="MISS"?null:findIndex(k,currentRole));b.disabled=true;b.classList.remove("ready");order++;if(order===3)finish()}
-function finish(){spinning=false;bet=0;let msg="ハズレ";if(currentRole==="BELL"){pay=8;credit+=8;msg="ベル +8枚"}else if(currentRole==="REPLAY"){pay=3;credit+=3;msg="リプレイ（3枚返却）"}else if(currentRole==="WATERMELON"){pay=8;credit+=8;msg="スイカ +8枚"}else if(currentRole==="CHERRY"){pay=1;credit+=1;msg="チェリー +1枚"}else if(currentRole==="BIG"){pay=250;credit+=250;msg="BIG BONUS +250枚";E("manLamp").classList.add("on")}else if(currentRole==="REG"){pay=100;credit+=100;msg="REG BONUS +100枚";E("manLamp").classList.add("on")}E("status").textContent=msg;sync()}
-E("stopL").onclick=()=>stop("left",E("stopL"));E("stopC").onclick=()=>stop("center",E("stopC"));E("stopR").onclick=()=>stop("right",E("stopR"));
+
+function sync(){
+ E("credit").textContent=credit;E("bet").textContent=bet;E("pay").textContent=pay;E("game").textContent=game;
+ E("betBtn").disabled=spinning||bet||credit<3;
+ E("leverBtn").disabled=spinning||bet!==3;
+}
+function roleSymbol(role){
+ return {BIG:"seven",REG:"bar",BIG_ALIGN:"seven",REG_ALIGN:"bar",BELL:"bell",REPLAY:"replay",WATERMELON:"watermelon",WEAK_CHERRY:"cherry",STRONG_CHERRY:"cherry"}[role]||null;
+}
+function findIndex(k,role){
+ if((role==="WEAK_CHERRY"||role==="STRONG_CHERRY")&&k!=="left")return null;
+ const sym=roleSymbol(role); if(!sym)return null;
+ const c=[];R[k].forEach((x,i)=>{if(x===sym)c.push(i)});
+ return c.length?c[Math.floor(Math.random()*c.length)]:null;
+}
+function setCenter(k,idx){
+ const h=H(),n=R[k].length;
+ if(idx==null)idx=Math.floor(Math.random()*n);
+ off[k]=(n+idx-1)*h;
+ const strip=E(k+"Strip");
+ strip.style.transition="transform .10s cubic-bezier(.2,.75,.35,1)";
+ strip.style.transform=`translateY(-${off[k]}px)`;
+ setTimeout(()=>strip.style.transition="",120);
+}
+E("betBtn").onclick=()=>{
+ if(credit<3||bet)return;
+ credit-=3;bet=3;pay=0;SE.bet();
+ E("status").textContent=bonusStock?`${bonusStock==="BIG"?"7":"BAR"}を狙え！`:"レバーON！";
+ sync();
+};
+function start(k,speed){
+ stopped[k]=false;const strip=E(k+"Strip"),total=R[k].length*H();
+ timer[k]=setInterval(()=>{
+   off[k]-=speed;if(off[k]<=total*.15)off[k]+=total;
+   strip.style.transform=`translateY(-${off[k]}px)`;
+ },16);
+}
+E("leverBtn").onclick=()=>{
+ if(spinning||bet!==3)return;
+ spinning=true;game++;order=0;pay=0;currentRole=drawRole();SE.lever();
+ if(bonusStock){
+   E("status").textContent=`${bonusStock==="BIG"?"7":"BAR"}を狙え！`;
+ }else if(bonusMode){
+   E("status").textContent=`${bonusMode} BONUS 残り${bonusLeft}G`;
+ }else{
+   E("status").textContent="回転中… STOP!";
+ }
+ if(!bonusStock&&!bonusMode)E("manLamp").classList.remove("on");
+ start("left",23);start("center",25);start("right",27);
+ ["stopL","stopC","stopR"].forEach(id=>{E(id).disabled=false;E(id).classList.add("ready")});
+ sync();
+};
+function stop(k,b){
+ if(!spinning||stopped[k])return;
+ clearInterval(timer[k]);stopped[k]=true;
+ let forced=(currentRole==="MISS")?null:findIndex(k,currentRole);
+ // Strong cherry: left cherry + right 7 as a provisional strong-cherry stop form.
+ if(currentRole==="STRONG_CHERRY" && k==="right") forced=findIndex("right","BIG");
+ // Chance pattern: intentionally create a conspicuous non-paying mixed stop.
+ if(currentRole==="CHANCE"){
+   if(k==="left") forced=findIndex("left","WATERMELON");
+   if(k==="center") forced=findIndex("center","BELL");
+   if(k==="right") forced=findIndex("right","BIG");
+ }
+ setCenter(k,forced);
+ b.disabled=true;b.classList.remove("ready");order++;
+ if(order===3)finish();
+}
+function finish(){
+ spinning=false;bet=0;let msg="ハズレ";
+
+ if(currentRole==="BIG_ALIGN"||currentRole==="REG_ALIGN"){
+   const type=bonusStock;
+   bonusStock=null;bonusMode=type;
+   bonusLeft=type==="BIG"?30:12;bonusTotal=0;
+   E("manLamp").classList.add("on");
+   msg=`${type} BONUS START!`;SE.bonus();startBonusBgm(type);
+ }
+ else if(currentRole==="BIG"||currentRole==="REG"){
+   bonusStock=currentRole;
+   E("manLamp").classList.add("on");
+   msg=`${currentRole} 内部成立！ 次G ${currentRole==="BIG"?"7":"BAR"}を狙え`;
+ }
+ else if(currentRole==="BELL"){
+   pay=bonusMode?15:8;credit+=pay;bonusTotal+=bonusMode?pay:0;msg=`ベル +${pay}枚`;SE.bell();
+ }
+ else if(currentRole==="REPLAY"){
+   pay=3;credit+=3;msg="リプレイ";SE.replay();
+ }
+ else if(currentRole==="WATERMELON"){
+   pay=8;credit+=8;msg="スイカ +8枚";SE.rare();
+ }
+ else if(currentRole==="WEAK_CHERRY"){
+   pay=1;credit+=1;msg="弱チェリー +1枚";SE.rare();
+ }
+ else if(currentRole==="STRONG_CHERRY"){
+   pay=1;credit+=1;msg="強チェリー +1枚";SE.chance();
+ }
+ else if(currentRole==="CHANCE"){
+   pay=0;msg="チャンス目！";SE.chance();
+ }
+
+ if(bonusStock && !bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
+   E("manLamp").classList.add("on");
+   msg+=` / ${bonusStock}同時当選！ 次G ${bonusStock==="BIG"?"7":"BAR"}を狙え`;
+ }
+ if(bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
+   bonusLeft--;
+   if(bonusLeft<=0){
+     msg+=` / ${bonusMode}終了 TOTAL ${bonusTotal}枚`;
+     bonusMode=null;bonusTotal=0;stopBgm();
+     E("manLamp").classList.remove("on");
+   }else{
+     msg+=` / 残り${bonusLeft}G`;
+   }
+ }
+ E("status").textContent=msg;sync();
+}
+E("stopL").onclick=()=>stop("left",E("stopL"));
+E("stopC").onclick=()=>stop("center",E("stopC"));
+E("stopR").onclick=()=>stop("right",E("stopR"));
+
+E("paytableBtn").onclick=()=>{
+  E("paytableModal").classList.add("open");
+  E("paytableModal").setAttribute("aria-hidden","false");
+};
+E("paytableClose").onclick=closePaytable;
+E("paytableModal").onclick=e=>{if(e.target===E("paytableModal"))closePaytable()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closePaytable()});
+function closePaytable(){
+  E("paytableModal").classList.remove("open");
+  E("paytableModal").setAttribute("aria-hidden","true");
+}
+
+
+E("soundBtn").onclick=()=>{
+ soundOn=!soundOn;
+ E("soundBtn").textContent=soundOn?"SOUND ON":"SOUND OFF";
+ E("soundBtn").classList.toggle("off",!soundOn);
+ if(!soundOn)stopBgm();
+};
+
 sync();
 </script></body></html>

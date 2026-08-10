@@ -1,15 +1,20 @@
-万枚ファンタジア A-TYPE Ver.0.3
+万枚ファンタジア A-TYPE Ver.0.7 AUDIO
 
-Ver.0.3変更点
-・リール回転方向を実機の見え方に合わせて修正
-・7図柄を約1.26倍に大型化
-・BAR図柄を約1.12倍に大型化
-・ベル / チェリー / スイカ / リプレイの見た目を整理
-・リール回転速度を調整
-・STOP時に短い停止アニメーションを追加
+追加した音:
+・3BET SE
+・LEVER ON SE
+・STOP 1/2/3 SE
+・ベル / リプレイ / レア役 / チャンス目 SE
+・BIG BONUS BGM 3曲
+・BAR/REG BONUS BGM
+・SOUND ON/OFFボタン
+・BONUS終了時にBGM停止
 
-ゲーム仕様はVer.0.2を継承
-・内部役抽選
-・小役払い出し
-・BIG 250枚 / REG 100枚
-・万ランプ
+BIG BGMはBIG突入ごとに
+Big Bonus → Big Bonus2 → Big Bonus3 → ... の順で切り替わる。
+
+ユーザー提供音源:
+BAR揃い.mp3
+Big Bonus.mp3
+Big Bonus2.mp3
+Big Bonus3.mp3
