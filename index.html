@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.9.6.2：ASSIST_COMA初期化順エラーを修正。停止テーブル仕様は維持。</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.9.6.4：ASSIST_COMA初期化順エラーを修正。停止テーブル仕様は維持。</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -307,7 +307,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 .mf-peek-bottom{bottom:-17px;}
 
 
-/* ===== Ver.0.9.9.6.2 REEL ALIGNMENT FIX ===== */
+/* ===== Ver.0.9.9.6.4：7とBARのみ横幅を拡大。回転中の視認性を強化。停止制御・判定は変更なし。
 /* 3リールの図柄サイズ・配置基準を完全統一 */
 .reels{
   align-items:stretch !important;
@@ -379,9 +379,36 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
   animation:mfBonusRegPulse .72s ease-in-out infinite !important;
 }
 
+
+/* ===== Ver.0.9.9.6.4 WIDE 7 / BAR ===== */
+/* 高さは変えず、7とBARだけ横方向へ拡大。
+   回転中・停止中とも同じ表示倍率になる。 */
+.reel img[src*="images_symbols_seven.png"]{
+  transform:scaleX(1.28) !important;
+  transform-origin:center center !important;
+  max-width:94% !important;
+}
+.reel img[src*="images_symbols_bar.png"]{
+  transform:scaleX(1.32) !important;
+  transform-origin:center center !important;
+  max-width:94% !important;
+}
+
+/* reel-slot / symbol wrapper側で描画される場合も対応 */
+.reel-slot img[src*="images_symbols_seven.png"],
+.symbol img[src*="images_symbols_seven.png"]{
+  transform:scaleX(1.28) !important;
+  transform-origin:center center !important;
+}
+.reel-slot img[src*="images_symbols_bar.png"],
+.symbol img[src*="images_symbols_bar.png"]{
+  transform:scaleX(1.32) !important;
+  transform-origin:center center !important;
+}
+
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.6.2.2</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.6.4.2</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -853,7 +880,9 @@ function mfCandidateCenters(k,maxSlide=ASSIST_COMA){
  return out;
 }
 function mfChooseRoleStop(k,role){
- const candidates=mfCandidateCenters(k,ASSIST_COMA);
+ // ボーナス内部成立中だけ、かなり甘めの最大9コマアシスト
+ const assistComa=(role==="BIG"||role==="REG")?9:ASSIST_COMA;
+ const candidates=mfCandidateCenters(k,assistComa);
 
  // チェリーは左リール専用停止テーブル
  if(k==="left" && role==="WEAK_CHERRY"){
@@ -874,6 +903,23 @@ function mfChooseRoleStop(k,role){
  // スイカ・ベル・リプレイ・BONUSは成立図柄を5コマ以内から最短で引き込む
  const symbol=roleSymbol(role);
  if(symbol){
+   // BIG/REGは窓内に対象図柄を引き込める候補も拾う。
+   // 中段を最優先、次に下段、上段。
+   if(role==="BIG"||role==="REG"){
+     let best=null;
+     for(const c of candidates){
+       const t=visibleTriplet(k,c.idx);
+       let row=99;
+       if(t.middle===symbol) row=0;
+       else if(t.bottom===symbol) row=1;
+       else if(t.top===symbol) row=2;
+       if(row<99){
+         const score=c.slide*10+row;
+         if(!best||score<best.score) best={...c,hit:true,reason:"BONUS_EASY_PULL",score};
+       }
+     }
+     if(best) return best;
+   }
    for(const c of candidates){
      if(R[k][c.idx]===symbol) return {...c,hit:true,reason:"ROLE_PULL"};
    }
@@ -1118,7 +1164,7 @@ function stop(k,b){
 
    // チェリー以外の成立役は従来targetフラグと整合
    if(!hit && target){
-     const assist=findAssistIndex(k,target,ASSIST_COMA);
+     const assist=findAssistIndex(k,target,(currentRole==="BIG"||currentRole==="REG")?9:ASSIST_COMA);
      idx=assist.idx;slide=assist.slide;hit=assist.hit;
    }
  }
