@@ -1,0 +1,35 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>万枚ファンタジア A-TYPE Ver.0.1</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
+.machine{width:min(850px,100%)}.logo{text-align:center}.logo img{width:min(520px,90vw);max-height:160px;object-fit:contain}.ver{text-align:center;color:#d6b46d;font-size:12px;font-weight:900;letter-spacing:.14em;margin-bottom:8px}
+.cab{padding:16px;border-radius:28px;border:3px solid #8d5d20;background:linear-gradient(145deg,#28140e,#09090b 32%,#1b1013);box-shadow:inset 0 0 0 3px #ffd76d44,0 20px 50px #000}
+.lamp{height:48px;border:2px solid #59401d;border-radius:16px;display:flex;justify-content:center;align-items:center;font-size:26px;font-weight:1000;color:#50300c;background:#0d0907;margin-bottom:10px}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}.cell{background:#020203;border:1px solid #40372f;border-radius:9px;padding:7px;text-align:center}.cell small{display:block;color:#948a81;font-size:8px;letter-spacing:.12em}.cell b{font:900 23px ui-monospace,monospace}
+.window{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px;background:#050505;border:4px solid #c59034;border-radius:14px;overflow:hidden}.line{position:absolute;z-index:9;left:8px;right:8px;top:50%;height:3px;background:#ff263a;box-shadow:0 0 10px #ff263a}
+.reel{height:330px;overflow:hidden;background:#fff;border:2px solid #222;border-radius:5px;position:relative}.reel:before,.reel:after{content:"";position:absolute;left:0;right:0;height:33%;z-index:4;pointer-events:none}.reel:before{top:0;background:linear-gradient(#0008,transparent)}.reel:after{bottom:0;background:linear-gradient(transparent,#0008)}
+.strip{position:absolute;left:0;right:0;top:0;will-change:transform}.symbol{height:110px;border-bottom:1px solid #ddd;display:flex;align-items:center;justify-content:center}.symbol img{max-width:88%;max-height:92px;object-fit:contain;filter:drop-shadow(0 2px 2px #0005)}
+.controls{margin-top:13px;padding:13px;border:1px solid #67491f;border-radius:16px;background:#0a0a0c}.topBtns{display:flex;gap:10px;justify-content:center}.btn{height:50px;border-radius:999px;border:2px solid #775322;background:linear-gradient(#39281d,#120d0b);color:#fff;font-weight:1000;padding:0 28px}.bet{color:#ffda61}.lever{height:58px;color:#fff0aa}.btn:disabled,.stop:disabled{opacity:.35;cursor:default}.stops{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:11px}.stop{height:64px;border-radius:15px;border:3px solid #741421;background:radial-gradient(circle,#f34b59,#a20b18 65%,#43040a);color:#fff;font-weight:1000;font-size:16px;box-shadow:inset 0 0 14px #fff3,0 5px 10px #000}.stop.ready{box-shadow:0 0 18px #ff2039,inset 0 0 15px #fff5}.status{text-align:center;min-height:24px;margin-top:10px;color:#ffe1a0;font-weight:900}.note{text-align:center;font-size:10px;color:#9c9187;margin-top:7px}
+@media(max-width:650px){body{padding:5px}.cab{padding:8px}.reel{height:240px}.symbol{height:80px}.symbol img{max-height:66px}.hud{grid-template-columns:repeat(2,1fr)}}
+</style></head><body><main class="machine">
+<div class="logo"><img src="logo.png"></div><div class="ver">A-TYPE PROTOTYPE Ver.0.1</div>
+<section class="cab"><div class="lamp">◇ 万 ◇</div>
+<div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
+<div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
+<div class="controls"><div class="topBtns"><button id="betBtn" class="btn bet">3 BET</button><button id="leverBtn" class="btn lever">LEVER ON</button></div>
+<div class="stops"><button id="stopL" class="stop" disabled>STOP 1</button><button id="stopC" class="stop" disabled>STOP 2</button><button id="stopR" class="stop" disabled>STOP 3</button></div>
+<div id="status" class="status">3 BETしてレバーON</div><div class="note">Ver.0.1：21コマ×3リール / 3BET / LEVER / 3STOP。役抽選・停止制御・BONUSは次工程。</div></div></section></main>
+<script>
+const S={seven:"seven.png",bar:"bar.png",bell:"bell.png",cherry:"cherry.png",watermelon:"watermelon.png",replay:"replay.png"};
+const R={"left": ["bell", "seven", "replay", "cherry", "replay", "watermelon", "bell", "replay", "bar", "cherry", "replay", "bell", "watermelon", "replay", "bell", "cherry", "replay", "bar", "bell", "replay", "watermelon"], "center": ["replay", "seven", "watermelon", "bell", "replay", "bar", "bell", "replay", "bar", "bell", "replay", "watermelon", "bell", "replay", "bell", "replay", "watermelon", "bar", "bell", "replay", "bell"], "right": ["watermelon", "seven", "replay", "bell", "replay", "watermelon", "bell", "replay", "bar", "replay", "replay", "bell", "watermelon", "replay", "bell", "replay", "bell", "bar", "bell", "replay", "watermelon"]};
+const E=id=>document.getElementById(id); const H=()=>innerWidth<=650?80:110;
+let credit=50,bet=0,game=0,spinning=false,order=0;let off={left:0,center:0,right:0},timer={},stopped={left:true,center:true,right:true};
+function build(k){let strip=E(k+"Strip"),seq=[...R[k],...R[k],...R[k]];strip.innerHTML=seq.map(x=>`<div class="symbol"><img src="${S[x]}"></div>`).join("");off[k]=R[k].length*H();strip.style.transform=`translateY(-${off[k]}px)`}
+["left","center","right"].forEach(build);
+function sync(){E("credit").textContent=credit;E("bet").textContent=bet;E("game").textContent=game;E("betBtn").disabled=spinning||bet||credit<3;E("leverBtn").disabled=spinning||bet!==3}
+E("betBtn").onclick=()=>{if(credit<3||bet)return;credit-=3;bet=3;E("pay").textContent=0;E("status").textContent="レバーON！";sync()}
+function start(k,speed){stopped[k]=false;let strip=E(k+"Strip"),total=R[k].length*H();timer[k]=setInterval(()=>{off[k]+=speed;if(off[k]>=total*2)off[k]-=total;strip.style.transform=`translateY(-${off[k]}px)`},16)}
+E("leverBtn").onclick=()=>{if(spinning||bet!==3)return;spinning=true;game++;order=0;E("status").textContent="回転中… STOP!";start("left",18);start("center",21);start("right",24);[["stopL","left"],["stopC","center"],["stopR","right"]].forEach(([id])=>{E(id).disabled=false;E(id).classList.add("ready")});sync()}
+function stop(k,b){if(!spinning||stopped[k])return;clearInterval(timer[k]);stopped[k]=true;let h=H();off[k]=Math.round(off[k]/h)*h;E(k+"Strip").style.transform=`translateY(-${off[k]}px)`;b.disabled=true;b.classList.remove("ready");order++;if(order===3){spinning=false;bet=0;E("status").textContent="停止完了。次ゲームへ";sync()}}
+E("stopL").onclick=()=>stop("left",E("stopL"));E("stopC").onclick=()=>stop("center",E("stopC"));E("stopR").onclick=()=>stop("right",E("stopR"));sync();
+</script></body></html>
