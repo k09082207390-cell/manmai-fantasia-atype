@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.8.3.2</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.9.2：通常WAITを約1.5秒へ短縮。ボーナス図柄揃い時は5秒ウェイト。</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -240,9 +240,75 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
   background:linear-gradient(to top,rgba(0,0,0,.42),rgba(0,0,0,0));
 }
 
+
+/* Ver.0.9.9 脳汁演出 */
+@keyframes mfRainbow {
+  0%{box-shadow:0 0 12px #f00, inset 0 0 18px #f00}
+  20%{box-shadow:0 0 18px #ff0, inset 0 0 22px #ff0}
+  40%{box-shadow:0 0 22px #0f0, inset 0 0 24px #0f0}
+  60%{box-shadow:0 0 22px #0ff, inset 0 0 24px #0ff}
+  80%{box-shadow:0 0 22px #70f, inset 0 0 24px #70f}
+  100%{box-shadow:0 0 12px #f08, inset 0 0 18px #f08}
+}
+@keyframes mfRedPulse {
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.45) saturate(1.7)}
+}
+.mf-rainbow{animation:mfRainbow .24s linear infinite!important}
+.mf-redpulse{animation:mfRedPulse .18s ease-in-out 3!important}
+.mf-blackout::after{
+  content:"";position:fixed;inset:0;background:#000;opacity:.88;
+  z-index:9998;pointer-events:none;
+}
+#mf-kakutei{
+  display:none;position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);
+  z-index:9999;font-weight:1000;font-size:clamp(28px,5vw,64px);
+  color:#fff;text-shadow:0 0 10px #fff,0 0 25px #ffd700,0 0 45px #f0f;
+  letter-spacing:.12em;pointer-events:none;
+}
+#mf-kakutei.show{display:block}
+
+
+/* ===== Ver.0.9.9.2 WIDE REAL REEL WINDOW ===== */
+/* リール全体を横・縦とも少し大きく */
+.reels{
+  width:min(96%, 760px) !important;
+  gap:8px !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+.reel{
+  min-height:390px !important;
+  height:390px !important;
+  border-radius:7px !important;
+}
+/* 3段の図柄自体は少し詰め、上下に余白を作って隣接図柄感を強める */
+.reel .cell,
+.reel .symbol,
+.reel-slot{
+  min-height:112px !important;
+}
+/* 窓の上下を薄暗くして、リール帯が奥まで続く印象 */
+.reel::before{height:13% !important;}
+.reel::after{height:13% !important;}
+
+@media (max-width:700px){
+  .reels{width:98% !important;gap:5px !important;}
+  .reel{height:350px !important;min-height:350px !important;}
+}
+
+
+.mf-peek-top,.mf-peek-bottom{
+ position:absolute;left:3%;right:3%;height:44px;z-index:7;pointer-events:none;
+ background-repeat:no-repeat;background-position:center;background-size:58% auto;
+ opacity:.72;filter:brightness(.72);overflow:hidden;
+}
+.mf-peek-top{top:-17px;}
+.mf-peek-bottom{bottom:-17px;}
+
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.8.3.2</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.2.2</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -286,7 +352,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
       </div>
     </div>
   </div>
-  <div class="note">Ver.0.9.8.3：AUTO停止時の centerSymbol 未定義エラーを修正。</div><div style="text-align:center;color:#8dff9f;font-size:11px;font-weight:900;margin:5px 0 0">スイカ成立時：中・右もBARを目安に狙えば5コマ以内でスイカをフォロー</div><div style="text-align:center;color:#ffd85a;font-size:11px;font-weight:900;margin:6px 0 0">左リール基本狙い：7・8・9付近（チェリー／スイカ フォロー）</div>
+  <div class="note">Ver.0.9.9：違和感・無音・遅れ・STOP音変化・第3停止フリーズ・全消灯・レインボー演出を追加。</div><div style="text-align:center;color:#8dff9f;font-size:11px;font-weight:900;margin:5px 0 0">スイカ成立時：中・右もBARを目安に狙えば5コマ以内でスイカをフォロー</div><div style="text-align:center;color:#ffd85a;font-size:11px;font-weight:900;margin:6px 0 0">左リール基本狙い：7・8・9付近（チェリー／スイカ フォロー）</div>
 </div>
 </div></section></main>
 
@@ -488,7 +554,7 @@ const SETTING=6;
 const BET_PER_GAME=3;
 const CREDIT_MAX=50;
 const ASSIST_COMA=5;
-const REEL_WAIT_MS=4100;
+const REEL_WAIT_MS=1500;
 
 const P={
   BIG:1/220,
@@ -866,6 +932,7 @@ function stop(k,b){
 }
 
 function startBonus(type){
+ mfSetBonusWait();
  bonusStock=null;
  bonusMode=type;
  bonusTotal=0;
@@ -955,6 +1022,7 @@ function finish(){
  if(bonusStock && !bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
    updateBonusGlow();
    msg+=` / ${bonusStock}内部成立！ ${bonusStock==="REG"&&currentRole==="WATERMELON"?"スイカ後もBAR狙い継続":"次G "+(bonusStock==="BIG"?"7":"BAR")+"を狙え"}`;
+   mfRevealBonus();
  }
 
  if(bonusMode && currentRole!=="BIG_ALIGN" && currentRole!=="REG_ALIGN"){
@@ -1066,5 +1134,117 @@ sync();
 
 
 
+
+
+/* ===== Ver.0.9.9 脳汁演出コントローラ ===== */
+let mfEffect="NONE";
+let mfSilentLever=false;
+let mfThirdDelay=0;
+
+function mfMachine(){
+  return document.querySelector(".machine") || document.querySelector(".cabinet") || document.body;
+}
+function mfPickEffect(role, bonus){
+  mfEffect="NONE"; mfSilentLever=false; mfThirdDelay=0;
+  const r=Math.random();
+
+  // ボーナス内部成立時ほど違和感・確定系が出やすい。演出なし当選も残す。
+  if(bonus){
+    if(r<0.08){mfEffect="SILENT";mfSilentLever=true;}
+    else if(r<0.16){mfEffect="DELAY";}
+    else if(r<0.24){mfEffect="STOP_TONE";}
+    else if(r<0.32){mfEffect="THIRD_FREEZE";mfThirdDelay=520;}
+    else if(r<0.39){mfEffect="BLACKOUT";}
+    else if(r<0.47){mfEffect="RAINBOW";}
+    else if(r<0.53){mfEffect="FROG";}
+    else mfEffect="NONE";
+  }else if(role==="STRONG_CHERRY" || role==="CHANCE"){
+    if(r<0.05) mfEffect="DELAY";
+    else if(r<0.09) mfEffect="STOP_TONE";
+  }
+}
+function mfLeverCue(){
+  const st=document.getElementById("status");
+  if(mfEffect==="DELAY" && st){
+    st.textContent="……";
+    setTimeout(()=>{ if(st.textContent==="……") st.textContent="回転中… STOP!"; },260);
+  }
+}
+function mfStopCue(n){
+  if(mfEffect==="STOP_TONE" && n===2){
+    // WebAudioだけの軽い違和感音。既存SEファイルには触れない。
+    try{
+      const C=window.AudioContext||window.webkitAudioContext;
+      const c=new C(),o=c.createOscillator(),g=c.createGain();
+      o.frequency.value=1040;g.gain.value=.035;o.connect(g);g.connect(c.destination);
+      o.start();o.stop(c.currentTime+.055);
+    }catch(e){}
+  }
+}
+function mfRevealBonus(){
+  const machine=mfMachine(), k=document.getElementById("mf-kakutei");
+  if(mfEffect==="RAINBOW"){
+    machine.classList.add("mf-rainbow");
+    setTimeout(()=>machine.classList.remove("mf-rainbow"),1800);
+  }else if(mfEffect==="BLACKOUT"){
+    document.body.classList.add("mf-blackout");
+    setTimeout(()=>{
+      document.body.classList.remove("mf-blackout");
+      if(k){k.classList.add("show");setTimeout(()=>k.classList.remove("show"),1200);}
+    },420);
+  }else if(mfEffect==="THIRD_FREEZE"){
+    if(k){setTimeout(()=>{k.classList.add("show");setTimeout(()=>k.classList.remove("show"),1200)},mfThirdDelay);}
+  }else if(mfEffect==="FROG"){
+    const frogs=[...document.querySelectorAll('img[src*="frog"]')];
+    if(frogs.length){
+      const f=frogs[Math.floor(Math.random()*frogs.length)];
+      f.classList.add("mf-redpulse");setTimeout(()=>f.classList.remove("mf-redpulse"),1000);
+    }
+  }
+}
+
+
+
+let mfBonusWaitUntil=0;
+function mfSetBonusWait(){
+ mfBonusWaitUntil=Date.now()+5000;
+ const st=document.getElementById("status");
+ if(st) st.textContent="BONUS!! 5秒ウェイト";
+ setTimeout(()=>{
+   if(st && st.textContent==="BONUS!! 5秒ウェイト") st.textContent="BONUS START!";
+ },5000);
+}
+function mfBonusWaitActive(){
+ return Date.now()<mfBonusWaitUntil;
+}
+
+
+
+/* Ver.0.9.9.2 safe adjacent-symbol peeks */
+const MF_IMG={
+ seven:"images_symbols_seven.png",bar:"images_symbols_bar.png",
+ bell:"images_symbols_bell.png",replay:"images_symbols_replay.png",
+ cherry:"images_symbols_cherry.png",watermelon:"images_symbols_watermelon.png"
+};
+function mfWidePeeks(){
+ ["left","center","right"].forEach(k=>{
+   const el=document.getElementById("reel-"+k); if(!el||!R||!R[k])return;
+   let top=el.querySelector(".mf-peek-top"), bot=el.querySelector(".mf-peek-bottom");
+   if(!top){top=document.createElement("div");top.className="mf-peek-top";el.appendChild(top);}
+   if(!bot){bot=document.createElement("div");bot.className="mf-peek-bottom";el.appendChild(bot);}
+   const n=R[k].length;
+   let idx=0;
+   if(typeof displayIndex!=="undefined"&&displayIndex&&Number.isFinite(displayIndex[k])) idx=norm(Math.round(displayIndex[k]),n);
+   else if(typeof stopIndex!=="undefined"&&stopIndex&&Number.isFinite(stopIndex[k])) idx=norm(stopIndex[k],n);
+   const a=R[k][norm(idx-2,n)], b=R[k][norm(idx+2,n)];
+   top.style.backgroundImage=MF_IMG[a]?`url("${MF_IMG[a]}")`:"none";
+   bot.style.backgroundImage=MF_IMG[b]?`url("${MF_IMG[b]}")`:"none";
+ });
+}
+window.addEventListener("load",()=>setTimeout(mfWidePeeks,50));
+
+
+setInterval(()=>{try{mfWidePeeks()}catch(e){}},120);
 </script>
+<div id="mf-kakutei">BONUS 確定</div>
 </body></html>
