@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.9.4：通常WAITを約1.5秒へ短縮。ボーナス図柄揃い時は5秒ウェイト。</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.9.6：通常WAITを約1.5秒へ短縮。ボーナス図柄揃い時は5秒ウェイト。</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -269,7 +269,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 #mf-kakutei.show{display:block}
 
 
-/* ===== Ver.0.9.9.4：左リールBAR下段狙いに弱めの2コマ補助を追加。高速リール・5コマ役アシストは維持。
+/* ===== Ver.0.9.9.6：成立役ごとの正式停止テーブル化。押下位置から最大5コマ・ハズレ時の有効役揃い禁止。
 /* リール全体を横・縦とも少し大きく */
 .reels{
   width:min(96%, 760px) !important;
@@ -308,7 +308,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.4.2</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.6.2</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -541,7 +541,7 @@ function startBonusBgm(type){
 let credit=50,bet=0,pay=0,game=0,spinning=false,waiting=false,order=0,currentRole="MISS";
 let off={left:0,center:0,right:0},timer={},stopped={left:true,center:true,right:true};
 let stopHit={left:false,center:false,right:false};
- missPlan=currentRole==="MISS"?chooseLegalMissCenters():null;
+ missPlan=currentRole==="MISS"?mfChooseMissPlan():null;
 let replayReady=false;
 let bonusStock=null;      // BIG / REG: internal bonus carried until aligned
 let bonusMode=null;       // BIG / REG currently paying out
@@ -753,6 +753,100 @@ function findAssistIndex(k,symbol,maxSlide=ASSIST_COMA){
  return {idx:press,slide:0,hit:false};
 }
 
+/* ===== Ver.0.9.9.6 FORMAL STOP TABLE ===== */
+function mfFiveLinesFromCenters(li,ci,ri){
+ const L=visibleTriplet("left",li), C=visibleTriplet("center",ci), Rr=visibleTriplet("right",ri);
+ return [
+   [L.top,C.top,Rr.top],
+   [L.middle,C.middle,Rr.middle],
+   [L.bottom,C.bottom,Rr.bottom],
+   [L.top,C.middle,Rr.bottom],
+   [L.bottom,C.middle,Rr.top]
+ ];
+}
+function mfLineTriple(lines,sym){
+ return lines.some(x=>x[0]===sym && x[1]===sym && x[2]===sym);
+}
+function mfAnyPayingTriple(lines){
+ return ["replay","bell","watermelon","seven","bar"].some(s=>mfLineTriple(lines,s));
+}
+function mfCandidateCenters(k,maxSlide=ASSIST_COMA){
+ const n=R[k].length, press=pressedCenterIndex(k), out=[];
+ for(let slide=0;slide<=maxSlide;slide++){
+   out.push({idx:norm(press-slide,n),slide});
+ }
+ return out;
+}
+function mfChooseRoleStop(k,role){
+ const candidates=mfCandidateCenters(k,ASSIST_COMA);
+
+ // チェリーは左リール専用停止テーブル
+ if(k==="left" && role==="WEAK_CHERRY"){
+   for(const c of candidates){
+     const t=visibleTriplet("left",c.idx);
+     if(t.top==="cherry" || t.bottom==="cherry") return {...c,hit:true,reason:"WEAK_CHERRY_CORNER"};
+   }
+   return {...candidates[0],hit:false,reason:"WEAK_CHERRY_MISS"};
+ }
+ if(k==="left" && role==="STRONG_CHERRY"){
+   for(const c of candidates){
+     const t=visibleTriplet("left",c.idx);
+     if(t.middle==="cherry") return {...c,hit:true,reason:"STRONG_CHERRY_MIDDLE"};
+   }
+   return {...candidates[0],hit:false,reason:"STRONG_CHERRY_MISS"};
+ }
+
+ // スイカ・ベル・リプレイ・BONUSは成立図柄を5コマ以内から最短で引き込む
+ const symbol=roleSymbol(role);
+ if(symbol){
+   for(const c of candidates){
+     if(R[k][c.idx]===symbol) return {...c,hit:true,reason:"ROLE_PULL"};
+   }
+ }
+
+ return {...candidates[0],hit:false,reason:"FREE"};
+}
+function mfChooseMissPlan(){
+ const lc=mfCandidateCenters("left",ASSIST_COMA);
+ const cc=mfCandidateCenters("center",ASSIST_COMA);
+ const rc=mfCandidateCenters("right",ASSIST_COMA);
+
+ let best=null,bestScore=1e9;
+ for(const l of lc){
+  for(const c of cc){
+   for(const r of rc){
+    const lines=mfFiveLinesFromCenters(l.idx,c.idx,r.idx);
+
+    // ハズレ時は有効役を絶対に完成させない。
+    if(mfAnyPayingTriple(lines)) continue;
+
+    // ハズレ時の左チェリー表示も避ける。
+    const lt=visibleTriplet("left",l.idx);
+    if(lt.top==="cherry"||lt.middle==="cherry"||lt.bottom==="cherry") continue;
+
+    // BAR下段狙いは軽く優遇。ただし停止優先順位は「近い停止」が最優先。
+    let bonus=0;
+    if(lt.bottom==="bar") bonus=-0.7;
+    const score=l.slide+c.slide+r.slide+bonus;
+    if(score<bestScore){
+      bestScore=score;
+      best={left:l.idx,center:c.idx,right:r.idx,slides:{left:l.slide,center:c.slide,right:r.slide}};
+    }
+   }
+  }
+ }
+ if(best) return best;
+
+ // 理論上ほぼ来ない安全フォールバック
+ return {
+   left:pressedCenterIndex("left"),
+   center:pressedCenterIndex("center"),
+   right:pressedCenterIndex("right"),
+   slides:{left:0,center:0,right:0}
+ };
+}
+
+
 function findLeftBottomBarAssist(){
  const arr=R.left, n=arr.length;
  const press=pressedCenterIndex("left");
@@ -820,7 +914,7 @@ function updateBonusGlow(){
 function allBonusSymbolsCaptured(){
  return stopHit.left && stopHit.center && stopHit.right;
 }
-function roleCaptured(){
+function roleCapturedOriginal(){
  try{
  const L=centerSymbol("left"), C=centerSymbol("center"), RR=centerSymbol("right");
 
@@ -845,6 +939,27 @@ function roleCaptured(){
    console.warn("roleCaptured fallback:",e);
    return stopHit.left && stopHit.center && stopHit.right;
  }
+}
+function roleCaptured(){
+  try{
+    const L=visibleTriplet("left",pressedCenterIndex("left"));
+    const C=visibleTriplet("center",pressedCenterIndex("center"));
+    const RR=visibleTriplet("right",pressedCenterIndex("right"));
+    const lines=[
+      [L.top,C.top,RR.top],
+      [L.middle,C.middle,RR.middle],
+      [L.bottom,C.bottom,RR.bottom],
+      [L.top,C.middle,RR.bottom],
+      [L.bottom,C.middle,RR.top]
+    ];
+    const hit3=(s)=>lines.some(x=>x.every(v=>v===s));
+    if(currentRole==="REPLAY") return hit3("replay");
+    if(currentRole==="BELL") return hit3("bell");
+    if(currentRole==="WATERMELON") return hit3("watermelon");
+    return roleCapturedOriginal();
+  }catch(e){
+    return stopHit.left && stopHit.center && stopHit.right;
+  }
 }
 
 E("betBtn").onclick=()=>{
@@ -916,31 +1031,21 @@ function stop(k,b){
  const target=targetFor(k,currentRole);
  let idx=pressedCenterIndex(k),slide=0,hit=false;
 
- if(k==="left" && currentRole==="WEAK_CHERRY"){
-   const assist=findCherryStop("WEAK");
-   idx=assist.idx;slide=assist.slide;hit=assist.hit;
- }else if(k==="left" && currentRole==="STRONG_CHERRY"){
-   const assist=findCherryStop("STRONG");
-   idx=assist.idx;slide=assist.slide;hit=assist.hit;
- }else if(k==="left" && currentRole==="MISS" && Math.random()<0.65){
-   // 左BAR下段の基本形アシスト
-   const barAssist=findLeftBottomBarAssist();
-   if(barAssist.hit){
-     idx=barAssist.idx;
-     slide=barAssist.slide;
-     hit=true;
-   }else if(missPlan){
-     idx=missPlan[k];
-     slide=Math.min(ASSIST_COMA,Math.abs(norm(idx-pressedCenterIndex(k),R[k].length)));
-     hit=true;
-   }
- }else if(currentRole==="MISS" && missPlan){
+ if(currentRole==="MISS" && missPlan){
    idx=missPlan[k];
-   slide=Math.min(ASSIST_COMA,Math.abs(norm(idx-pressedCenterIndex(k),R[k].length)));
+   slide=(missPlan.slides && Number.isFinite(missPlan.slides[k]))?missPlan.slides[k]:0;
    hit=true;
- }else if(target){
-   const assist=findAssistIndex(k,target,ASSIST_COMA);
-   idx=assist.idx;slide=assist.slide;hit=assist.hit;
+ }else{
+   const tableStop=mfChooseRoleStop(k,currentRole);
+   idx=tableStop.idx;
+   slide=tableStop.slide;
+   hit=tableStop.hit;
+
+   // チェリー以外の成立役は従来targetフラグと整合
+   if(!hit && target){
+     const assist=findAssistIndex(k,target,ASSIST_COMA);
+     idx=assist.idx;slide=assist.slide;hit=assist.hit;
+   }
  }
  stopHit[k]=target?hit:true;
  setCenter(k,idx,slide);
@@ -982,6 +1087,19 @@ function endBonus(){
 function finish(){
  spinning=false;
  let msg="ハズレ";
+ // 5ラインの見た目入賞を最終確認
+ try{
+   const L=visibleTriplet("left",pressedCenterIndex("left"));
+   const C=visibleTriplet("center",pressedCenterIndex("center"));
+   const RR=visibleTriplet("right",pressedCenterIndex("right"));
+   const lines=[[L.top,C.top,RR.top],[L.middle,C.middle,RR.middle],[L.bottom,C.bottom,RR.bottom],[L.top,C.middle,RR.bottom],[L.bottom,C.middle,RR.top]];
+   const hit3=(s)=>lines.some(x=>x.every(v=>v===s));
+   if(currentRole==="MISS"){
+     if(hit3("replay")) currentRole="REPLAY";
+     else if(hit3("bell")) currentRole="BELL";
+     else if(hit3("watermelon")) currentRole="WATERMELON";
+   }
+ }catch(e){}
  const captured=roleCaptured();
 
  // BONUS is never started by internal hit alone. All 3 bonus symbols must be aligned.
