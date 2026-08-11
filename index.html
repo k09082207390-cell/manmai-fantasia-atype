@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>万枚ファンタジア A-TYPE Ver.0.9.9.6.7：ASSIST_COMA初期化順エラーを修正。停止テーブル仕様は維持。</title>
+<title>万枚ファンタジア A-TYPE Ver.0.9.9.6.9-LITE：GitHub Pages向け音声軽量化版。ゲーム仕様は通常版と同一。</title>
 <style>
 
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#31160d,#09090d 48%,#020203);color:#fff;font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:16px}
@@ -307,7 +307,7 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
 .mf-peek-bottom{bottom:-17px;}
 
 
-/* ===== Ver.0.9.9.6.7：7・BARをともに横2.00倍へ統一。停止制御・抽選・判定は変更なし。
+/* ===== Ver.0.9.9.6.9：カエル違和感演出を追加。ボーナス内部成立・レア役時に低確率で微動/震え/発光。
 /* 3リールの図柄サイズ・配置基準を完全統一 */
 .reels{
   align-items:stretch !important;
@@ -406,9 +406,31 @@ body{background:radial-gradient(circle at 50% 8%,#28170a 0,#080706 48%,#020202 1
   transform-origin:center center !important;
 }
 
+
+/* ===== Ver.0.9.9.6.9 FROG ODDITY ===== */
+@keyframes frogPeek {
+  0%,100%{transform:translateY(0) scale(1);filter:brightness(1)}
+  35%{transform:translateY(-7px) scale(1.04);filter:brightness(1.18)}
+  65%{transform:translateY(-3px) scale(1.02);filter:brightness(1.08)}
+}
+@keyframes frogShake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-4px) rotate(-2deg)}
+  40%{transform:translateX(4px) rotate(2deg)}
+  60%{transform:translateX(-3px) rotate(-1deg)}
+  80%{transform:translateX(3px) rotate(1deg)}
+}
+@keyframes frogGlow {
+  0%,100%{filter:brightness(1) drop-shadow(0 0 0 rgba(255,215,80,0))}
+  50%{filter:brightness(1.35) drop-shadow(0 0 14px rgba(255,215,80,.95))}
+}
+.frog-odd-peek{animation:frogPeek .65s ease-in-out 1!important}
+.frog-odd-shake{animation:frogShake .42s ease-in-out 1!important}
+.frog-odd-glow{animation:frogGlow .8s ease-in-out 2!important}
+
 </style>
 </head><body><div id="runtimeError" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:10000;background:#5c0b14;color:white;border:1px solid #ff6f7d;border-radius:9px;padding:9px;font:12px monospace"></div><main class="machine">
-<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.6.7.2</div>
+<div class="cabinet-top"><img src="images_cabinet_cabinet_top.png" alt="万枚ファンタジア"></div><div class="ver">A-TYPE Ver.0.9.9.6.9.2</div>
 <section class="cab"><div id="manLamp" class="lamp">◇ 万 ◇</div><div style="text-align:center;color:#ffd65c;font-weight:900;font-size:12px;margin:-4px 0 9px">SETTING 6</div>
 <div class="hud"><div class="cell"><small>CREDIT</small><b id="credit">50</b></div><div class="cell"><small>BET</small><b id="bet">0</b></div><div class="cell"><small>PAY</small><b id="pay">0</b></div><div class="cell"><small>GAME</small><b id="game">0</b></div></div>
 <div class="window"><div class="line"></div><div class="reel"><div id="leftStrip" class="strip"></div></div><div class="reel"><div id="centerStrip" class="strip"></div></div><div class="reel"><div id="rightStrip" class="strip"></div></div></div>
@@ -632,12 +654,29 @@ function playBgm(id){
   }
 }
 function startBonusBgm(type){
-  try{
-    if(type==="REG"){playBgm("bgmBar");return;}
-    const ids=["bgmBig1","bgmBig2","bgmBig3"];
-    playBgm(ids[bigBgmIndex%ids.length]);
-    bigBgmIndex++;
-  }catch(e){console.warn("Bonus BGM skipped:",e);}
+  if(!soundOn)return;
+  stopBgm();
+
+  let candidates=[];
+  if(type==="BIG"){
+    candidates=[
+      "audio_bgm_bgm_01.mp3",
+      "audio_bgm_bgm_02.mp3",
+      "audio_bgm_bgm_03.mp3",
+      "audio_bgm_bgm_04.mp3",
+      "audio_bgm_big_bonus_01.mp3",
+      "audio_bgm_big_bonus_02.mp3",
+      "audio_bgm_big_bonus_03.mp3"
+    ];
+  }else{
+    candidates=["bar_bonus.mp3"];
+  }
+
+  const src=candidates[Math.floor(Math.random()*candidates.length)];
+  bgm=new Audio(src);
+  bgm.loop=true;
+  bgm.volume=masterVolume;
+  bgm.play().catch(()=>{});
 }
 
 let credit=50,bet=0,pay=0,game=0,spinning=false,waiting=false,order=0,currentRole="MISS";
@@ -1129,6 +1168,7 @@ E("leverBtn").onclick=()=>{
 
  // Internal role is decided at LEVER ON, even if the reel wait is still active.
  currentRole=drawRole();
+ mfMaybeFrogOddity(currentRole,(typeof bonusStock!=="undefined"&&!!bonusStock));
  try{SE.lever();}catch(e){console.warn("audio ignored",e);}
  updateBonusGlow();
 
@@ -1536,6 +1576,57 @@ function mfUpdateBonusFlash(){
 
 
 setInterval(()=>{try{mfUpdateBonusFlash()}catch(e){}},120);
+
+
+/* ===== Ver.0.9.9.6.9 FROG ODDITY SYSTEM ===== */
+function mfFrogImages(){
+  return [...document.querySelectorAll('img[src*="images_frogs_frog_"]')];
+}
+function mfFrogOddity(kind="AUTO"){
+  const frogs=mfFrogImages();
+  if(!frogs.length) return;
+
+  const f=frogs[Math.floor(Math.random()*frogs.length)];
+  const modes=["frog-odd-peek","frog-odd-shake","frog-odd-glow"];
+  let cls=modes[Math.floor(Math.random()*modes.length)];
+
+  if(kind==="BONUS") cls="frog-odd-glow";
+  else if(kind==="RARE") cls=Math.random()<.5?"frog-odd-peek":"frog-odd-shake";
+
+  f.classList.remove(...modes);
+  void f.offsetWidth;
+  f.classList.add(cls);
+
+  setTimeout(()=>f.classList.remove(...modes),1700);
+}
+
+function mfMaybeFrogOddity(role, bonusPending){
+  const r=Math.random();
+
+  // BONUS内部成立：気づけばかなり熱い。演出なしも残す。
+  if(bonusPending){
+    if(r<0.28) mfFrogOddity("BONUS");
+    return;
+  }
+
+  // 強レア役：低確率で違和感
+  if(role==="STRONG_CHERRY" || role==="CHANCE"){
+    if(r<0.12) mfFrogOddity("RARE");
+    return;
+  }
+
+  // 弱レア役：さらに薄く
+  if(role==="WEAK_CHERRY" || role==="WATERMELON"){
+    if(r<0.045) mfFrogOddity("RARE");
+    return;
+  }
+
+  // 通常時の完全なフェイク違和感。かなり薄く。
+  if(role==="MISS" && r<0.004){
+    mfFrogOddity("AUTO");
+  }
+}
+
 </script>
 <div id="mf-kakutei">BONUS 確定</div>
 </body></html>
